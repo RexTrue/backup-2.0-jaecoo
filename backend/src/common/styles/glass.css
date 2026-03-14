@@ -1,0 +1,45 @@
+.glass {
+
+  background: rgba(255,255,255,0.08);
+
+  backdrop-filter: blur(20px);
+
+  border-radius: 18px;
+
+  border: 1px solid rgba(255,255,255,0.12);
+
+  box-shadow:
+      0 8px 32px rgba(0,0,0,0.35);
+}
+
+.glass-card {
+
+  padding: 24px;
+
+}
+
+.glass-button {
+
+  padding: 10px 22px;
+
+  border-radius: 12px;
+
+  border: 1px solid rgba(255,255,255,0.2);
+
+  background: rgba(255,255,255,0.08);
+
+  color: white;
+
+  cursor: pointer;
+
+  transition: all .2s ease;
+
+}
+
+.glass-button:hover {
+
+  background: rgba(255,255,255,0.2);
+
+  transform: translateY(-2px);
+
+}
