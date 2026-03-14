@@ -20,6 +20,15 @@ function MenuIcon() {
   );
 }
 
+function BrandSignature() {
+  return (
+    <div className="dashboard-topbar__brandmark" aria-label="JAECOO Yogyakarta">
+      <img src="/assets/logo-jaecoo-black-large.png" alt="JAECOO" className="dashboard-topbar__brandmark-logo" />
+      <span className="dashboard-topbar__brandmark-text">Yogyakarta</span>
+    </div>
+  );
+}
+
 export default function DashboardTopbar({
   title,
   subtitle,
@@ -31,22 +40,9 @@ export default function DashboardTopbar({
 }: DashboardTopbarProps) {
   return (
     <header className="dashboard-topbar">
-      <div style={{ minWidth: 0, width: '100%' }}>
-        <p className="dashboard-topbar__breadcrumb">{breadcrumb}</p>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: isMobile ? 'center' : 'flex-start',
-            justifyContent: 'space-between',
-            gap: 16,
-            flexWrap: isMobile ? 'nowrap' : 'wrap',
-          }}
-        >
-          <div style={{ minWidth: 0 }}>
-            <h1 className="dashboard-topbar__title">{title}</h1>
-            <p className="dashboard-topbar__subtitle">{subtitle}</p>
-          </div>
-
+      <div className="dashboard-topbar__intro">
+        <div className="dashboard-topbar__brand-row">
+          <BrandSignature />
           {isMobile ? (
             <button
               type="button"
@@ -67,6 +63,24 @@ export default function DashboardTopbar({
               <MenuIcon />
             </button>
           ) : null}
+        </div>
+
+        <div style={{ minWidth: 0, width: '100%' }}>
+          <p className="dashboard-topbar__breadcrumb">{breadcrumb}</p>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: isMobile ? 'center' : 'flex-start',
+              justifyContent: 'space-between',
+              gap: 16,
+              flexWrap: isMobile ? 'nowrap' : 'wrap',
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <h1 className="dashboard-topbar__title">{title}</h1>
+              <p className="dashboard-topbar__subtitle">{subtitle}</p>
+            </div>
+          </div>
         </div>
       </div>
 

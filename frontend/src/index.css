@@ -1594,3 +1594,450 @@ a {
     font-size: 11px;
   }
 }
+
+/* =====================================================
+   APPLE-LIKE SIDEBAR REDESIGN
+   Added only - simplified menu and profile-card inspired sidebar.
+===================================================== */
+
+.dashboard-sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 18px 14px 14px;
+}
+
+.dashboard-sidebar__profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  padding: 14px 14px 16px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.4) 100%);
+}
+
+.dashboard-sidebar__brand-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dashboard-sidebar__window {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(245, 172, 58, 0.9);
+  box-shadow: 0 1px 1px rgba(255, 255, 255, 0.5) inset;
+}
+
+.dashboard-sidebar__window:first-child {
+  background: rgba(255, 95, 86, 0.92);
+}
+
+.dashboard-sidebar__window:last-child {
+  background: rgba(40, 200, 64, 0.88);
+}
+
+.dashboard-sidebar__identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-sidebar__avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(31, 41, 55, 0.88);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(228, 234, 244, 0.8) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.dashboard-sidebar__city {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(24, 33, 46, 0.9);
+}
+
+.dashboard-sidebar__role {
+  margin-top: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(63, 72, 87, 0.86);
+  background: rgba(255, 255, 255, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+}
+
+.dashboard-sidebar__section-label {
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(84, 93, 111, 0.74);
+}
+
+.dashboard-sidebar__nav {
+  display: grid;
+  gap: 8px;
+  margin-top: 0;
+}
+
+.dashboard-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  color: rgba(42, 53, 69, 0.84);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.dashboard-sidebar__link-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(74, 87, 109, 0.82);
+  flex-shrink: 0;
+}
+
+.dashboard-sidebar__link-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.dashboard-sidebar__link-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-sidebar__link:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.dashboard-sidebar__link--active {
+  color: rgba(19, 29, 43, 0.96);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(244, 247, 252, 0.72) 100%);
+  box-shadow: 0 12px 24px rgba(31, 41, 55, 0.08);
+}
+
+.dashboard-sidebar__link--active .dashboard-sidebar__link-icon {
+  color: rgba(28, 37, 52, 0.95);
+}
+
+.dashboard-sidebar__link-dot {
+  display: none;
+}
+
+.dashboard-sidebar__footer {
+  margin-top: auto;
+  padding: 12px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.dashboard-sidebar__footer p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(76, 86, 103, 0.84);
+}
+
+@media (min-width: 961px) {
+  .dashboard-sidebar {
+    width: 260px;
+    min-width: 260px;
+    margin: 16px 0 16px 16px;
+    border-radius: 32px;
+  }
+}
+
+@media (max-width: 960px) {
+  .dashboard-sidebar {
+    padding: 16px 12px 12px;
+  }
+
+  .dashboard-sidebar__profile-card {
+    border-radius: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-sidebar__avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 17px;
+  }
+
+  .dashboard-sidebar__link {
+    min-height: 44px;
+    padding: 9px 12px;
+    border-radius: 16px;
+  }
+
+  .dashboard-sidebar__footer {
+    padding: 10px 12px;
+  }
+}
+
+/* =====================================================
+   SIDEBAR BRAND CLEANUP
+   Added only - remove traffic lights and use logo branding.
+===================================================== */
+
+.dashboard-sidebar__brand-head,
+.dashboard-sidebar__window {
+  display: none !important;
+}
+
+.dashboard-sidebar__identity--brand {
+  align-items: center;
+  gap: 14px;
+}
+
+.dashboard-sidebar__avatar--brand {
+  width: 78px;
+  height: 78px;
+  padding: 14px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(239,242,247,0.82) 100%);
+}
+
+.dashboard-sidebar__logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.dashboard-sidebar__city {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 640px) {
+  .dashboard-sidebar__avatar--brand {
+    width: 68px;
+    height: 68px;
+    padding: 12px;
+    border-radius: 22px;
+  }
+
+  .dashboard-sidebar__city {
+    font-size: 17px;
+  }
+}
+
+
+/* =====================================================
+   FRONTEND5 BRAND + ACCOUNT + URGENCY ENHANCEMENTS
+   Added only - existing rules above are preserved.
+===================================================== */
+
+.dashboard-topbar__intro {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  flex: 1 1 540px;
+}
+
+.dashboard-topbar__brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboard-topbar__brandmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.56);
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-topbar__brandmark-logo {
+  width: 68px;
+  height: 18px;
+  object-fit: contain;
+  display: block;
+}
+
+.dashboard-topbar__brandmark-text {
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.dashboard-sidebar__brand-card {
+  margin-bottom: 8px;
+}
+
+.dashboard-sidebar__account-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.42));
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-sidebar__account-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.12), rgba(15, 23, 42, 0.06));
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.dashboard-sidebar__account-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  flex: 1;
+}
+
+.dashboard-sidebar__account-copy strong {
+  font-size: 14px;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-sidebar__account-copy span {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-sidebar__account-status {
+  align-self: flex-start;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(220, 252, 231, 0.9);
+  color: #166534;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dashboard-stat-card--neutral .dashboard-stat-card__icon {
+  background: rgba(99, 115, 129, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.dashboard-stat-card--success {
+  background: linear-gradient(180deg, rgba(240, 253, 244, 0.95), rgba(220, 252, 231, 0.75));
+  border-color: rgba(134, 239, 172, 0.78);
+}
+
+.dashboard-stat-card--success .dashboard-stat-card__icon {
+  background: rgba(34, 197, 94, 0.24);
+}
+
+.dashboard-stat-card--warning {
+  background: linear-gradient(180deg, rgba(254, 252, 232, 0.98), rgba(254, 249, 195, 0.84));
+  border-color: rgba(253, 224, 71, 0.82);
+}
+
+.dashboard-stat-card--warning .dashboard-stat-card__icon {
+  background: rgba(234, 179, 8, 0.28);
+}
+
+.dashboard-stat-card--urgent {
+  background: linear-gradient(180deg, rgba(255, 236, 236, 0.98), rgba(255, 217, 217, 0.88));
+  border-color: rgba(248, 113, 113, 0.72);
+  box-shadow: 0 18px 34px rgba(248, 113, 113, 0.16);
+}
+
+.dashboard-stat-card--urgent .dashboard-stat-card__icon {
+  background: rgba(239, 68, 68, 0.28);
+}
+
+.dashboard-attention--danger {
+  background: linear-gradient(180deg, rgba(255, 240, 240, 0.98), rgba(255, 230, 230, 0.88));
+  border-color: rgba(248, 113, 113, 0.62);
+}
+
+.dashboard-attention--warning {
+  background: linear-gradient(180deg, rgba(255, 251, 235, 0.98), rgba(254, 243, 199, 0.9));
+  border-color: rgba(245, 158, 11, 0.38);
+}
+
+@media (max-width: 960px) {
+  .dashboard-topbar__brandmark {
+    padding: 9px 12px;
+  }
+
+  .dashboard-topbar__brandmark-logo {
+    width: 56px;
+    height: 16px;
+  }
+
+  .dashboard-topbar__brandmark-text {
+    font-size: 18px;
+  }
+
+  .dashboard-sidebar__account-card {
+    padding: 12px 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-topbar__brand-row {
+    align-items: flex-start;
+  }
+
+  .dashboard-topbar__brandmark {
+    max-width: calc(100% - 56px);
+  }
+
+  .dashboard-topbar__brandmark-text {
+    font-size: 16px;
+  }
+
+  .dashboard-sidebar__account-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-sidebar__account-status {
+    margin-left: 60px;
+  }
+}
