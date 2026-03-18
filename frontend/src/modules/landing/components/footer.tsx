@@ -1,37 +1,30 @@
-export default function Footer() {
+
+export default function Footer(){
   return (
-    <footer className="landing-footer">
-      <div className="landing-footer__inner">
-        <div className="landing-footer__text-wrap">
-          <p className="landing-footer__text">
-            JAECOO Service Management System adalah prototipe sistem manajemen
-            internal yang sedang dikerjakan oleh mahasiswa magang Program Studi
-            Informatika UPN “Veteran” Yogyakarta pada bulan Maret tahun 2026.
-            <br />
-            Sistem ini masih dalam tahap pengembangan, EXPECT BUG.
-          </p>
+    <footer className="mt-20 border-t border-white/10 pt-10 pb-12 text-sm text-white/60">
+      <div className="max-w-6xl mx-auto px-6 grid gap-6 md:grid-cols-3">
+        <div>
+          <div className="font-semibold text-white">
+            JAECOO Service Management
+          </div>
+          <div>Yogyakarta</div>
         </div>
 
-        <div className="landing-footer__logo-wrap">
-          <img
-            src="/assets/logo-jaecoo-white.png"
-            alt="JAECOO"
-            className="landing-footer__logo"
-          />
+        <div className="grid grid-cols-2 gap-2">
+          <div>Dashboard</div>
+          <div>Work Orders</div>
+          <div>Service Board</div>
+          <div>Customers</div>
+          <div>Vehicles</div>
+          <div>Schedule</div>
+          <div>Reports</div>
+          <div>Users</div>
         </div>
 
-        <div className="landing-footer__socials">
-          <a href="#" className="landing-footer__social">
-            ○
-          </a>
-          <a href="#" className="landing-footer__social">
-            f
-          </a>
-          <a href="#" className="landing-footer__social">
-            ♪
-          </a>
+        <div className="text-right">
+          © {new Date().getFullYear()} JAECOO
         </div>
       </div>
     </footer>
-  );
+  )
 }
