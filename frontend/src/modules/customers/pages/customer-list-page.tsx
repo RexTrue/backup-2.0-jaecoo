@@ -6,15 +6,20 @@ import { Card } from '@/common/components/ui/card';
 import { EmptyState } from '@/common/components/feedback/empty-state';
 import { ErrorState } from '@/common/components/feedback/error-state';
 import { LoadingState } from '@/common/components/feedback/loading-state';
+import { useToast } from '@/common/components/feedback/toast-provider';
+import { useConfirm } from '@/common/components/feedback/confirm-dialog-provider';
 import { Input } from '@/common/components/ui/input';
 import { Textarea } from '@/common/components/ui/textarea';
 import { Button } from '@/common/components/ui/button';
 import { FieldError, FieldHint, FieldLabel } from '@/common/components/forms/form-field';
 import { FormShell } from '@/common/components/forms/form-shell';
+import { FormDirtyBanner } from '@/common/components/forms/form-dirty-banner';
 import { PayloadPreview } from '@/common/components/forms/payload-preview';
 import { ListCard } from '@/common/components/data-display/list-card';
 import { PageHeader } from '@/common/components/page/page-header';
+import { PermissionGate } from '@/common/components/auth/permission-gate';
 import { shouldUseMockFallback } from '@/common/lib/query-fallback';
+import { useUnsavedChanges } from '@/common/hooks/use-unsaved-changes';
 import { customerRowsMock } from '@/modules/customers/mocks/customer.mock';
 import { useCreateCustomer, useCustomers } from '@/modules/customers/hooks/use-customers';
 import { mapCustomerToListRow } from '@/modules/customers/mappers/customer-mappers';
@@ -35,10 +40,19 @@ export function CustomerListPage() {
   const customersQuery = useCustomers();
   const customers = customersQuery.data;
   const createCustomerMutation = useCreateCustomer();
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { showToast } = useToast();
+  const { confirm } = useConfirm();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { nik: '', nama: '', no_hp: '', alamat: '' },
   });
+
+  useUnsavedChanges({ when: isDirty });
 
   const rows = useMemo(() => (customers?.length ? customers.map(mapCustomerToListRow) : []), [customers]);
   const useMockData = shouldUseMockFallback(customersQuery.isError);
@@ -55,9 +69,11 @@ export function CustomerListPage() {
     try {
       await createCustomerMutation.mutateAsync(payload);
       setSubmitState('Payload pelanggan berhasil dikirim.');
+      showToast({ title: 'Pelanggan disimpan', description: 'Payload pelanggan berhasil dikirim ke service layer.', tone: 'success' });
       reset();
     } catch {
       setSubmitState('Payload pelanggan siap integrasi. Endpoint backend belum merespons.');
+      showToast({ title: 'Backend belum merespons', description: 'Payload tetap tersimpan di preview untuk validasi integrasi.', tone: 'info' });
     }
   });
 
@@ -66,7 +82,8 @@ export function CustomerListPage() {
       <PageHeader eyebrow="Pelanggan" title="Pelanggan" />
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <FormShell eyebrow="Form" title="Input Pelanggan" subtitle="Field mengikuti tabel Pemilik pada database.">
-          <form className="grid gap-4 md:grid-cols-2" onSubmit={onSubmit}>
+          <FormDirtyBanner visible={isDirty} />
+          <form className="mt-4 grid gap-4 md:grid-cols-2" onSubmit={onSubmit}>
             <div>
               <FieldLabel htmlFor="nik">NIK</FieldLabel>
               <Input id="nik" placeholder="3401123456780001" {...register('nik')} />
@@ -88,6 +105,23 @@ export function CustomerListPage() {
             </div>
             <div className="md:col-span-2 flex flex-wrap items-center gap-3">
               <Button type="submit" disabled={isSubmitting || createCustomerMutation.isPending}>Simpan Pelanggan</Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={async () => {
+                  if (!isDirty) {
+                    reset();
+                    return;
+                  }
+                  const approved = await confirm({ title: 'Reset form pelanggan?', description: 'Perubahan yang belum disimpan akan hilang.' });
+                  if (approved) {
+                    reset();
+                    showToast({ title: 'Form direset', description: 'Input pelanggan kembali ke nilai awal.' });
+                  }
+                }}
+              >
+                Reset
+              </Button>
               {submitState ? <span className="text-sm theme-muted">{submitState}</span> : null}
             </div>
           </form>
@@ -113,10 +147,21 @@ export function CustomerListPage() {
                   footer={(
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="text-sm theme-muted">Kontak: {row.phone}</p>
-                      <div className="action-strip">
-                        <Button variant="secondary" type="button">Edit</Button>
-                        <Button variant="danger" type="button">Hapus</Button>
-                      </div>
+                      <PermissionGate permission="work-orders:create">
+                        <div className="action-strip">
+                          <Button variant="secondary" type="button">Edit</Button>
+                          <Button
+                            variant="danger"
+                            type="button"
+                            onClick={async () => {
+                              const approved = await confirm({ title: `Hapus ${row.name}?`, description: 'Aksi ini baru level UI dan belum terhubung ke backend.', confirmLabel: 'Hapus', tone: 'danger' });
+                              if (approved) showToast({ title: 'Aksi hapus dicatat', description: 'Endpoint delete pelanggan belum diaktifkan.', tone: 'info' });
+                            }}
+                          >
+                            Hapus
+                          </Button>
+                        </div>
+                      </PermissionGate>
                     </div>
                   )}
                 />
@@ -136,10 +181,21 @@ export function CustomerListPage() {
                 footer={(
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="text-sm theme-muted">Kontak: {row.phone}</p>
-                    <div className="action-strip">
-                      <Button variant="secondary" type="button">Edit</Button>
-                      <Button variant="danger" type="button">Hapus</Button>
-                    </div>
+                    <PermissionGate permission="work-orders:create">
+                      <div className="action-strip">
+                        <Button variant="secondary" type="button">Edit</Button>
+                        <Button
+                          variant="danger"
+                          type="button"
+                          onClick={async () => {
+                            const approved = await confirm({ title: `Hapus ${row.name}?`, description: 'Aksi hapus akan dihubungkan ke endpoint pelanggan pada tahap backend.', confirmLabel: 'Hapus', tone: 'danger' });
+                            if (approved) showToast({ title: 'Aksi hapus dicatat', description: 'Endpoint delete pelanggan belum diaktifkan.', tone: 'info' });
+                          }}
+                        >
+                          Hapus
+                        </Button>
+                      </div>
+                    </PermissionGate>
                   </div>
                 )}
               />

@@ -11,6 +11,7 @@ import { createQuickDemoSession, demoCredentials } from '@/modules/auth/services
 import { useAuthStore } from '@/modules/auth/store/auth-store';
 import { getDefaultRouteByRole, roleLabels } from '@/common/lib/authz';
 import { ThemeLogo } from '@/common/components/ui/theme-logo';
+import { useToast } from '@/common/components/feedback/toast-provider';
 
 const schema = z.object({
   email: z.string().email('Email tidak valid'),
@@ -25,6 +26,7 @@ export function LoginPage() {
   const user = useAuthStore((state) => state.user);
   const setSession = useAuthStore((state) => state.setSession);
   const loginMutation = useLogin();
+  const { showToast } = useToast();
   const {
     register,
     handleSubmit,
@@ -38,6 +40,7 @@ export function LoginPage() {
   useEffect(() => {
     if (loginMutation.isSuccess && user) {
       const targetPath = (location.state as { from?: { pathname?: string } } | undefined)?.from?.pathname;
+      showToast({ title: 'Login berhasil', description: `Role aktif: ${roleLabels[user.role]}.`, tone: 'success' });
       navigate(targetPath ?? getDefaultRouteByRole(user.role), { replace: true });
     }
   }, [location.state, loginMutation.isSuccess, navigate, user]);
@@ -63,6 +66,7 @@ export function LoginPage() {
             onClick={() => {
               const quickSession = createQuickDemoSession('manager@service.com');
               setSession({ token: quickSession.accessToken, user: quickSession.user });
+              showToast({ title: 'Mode demo aktif', description: 'Masuk sebagai manager untuk meninjau alur utama.', tone: 'success' });
               navigate(getDefaultRouteByRole(quickSession.user.role), { replace: true });
             }}
           >
@@ -119,6 +123,7 @@ export function LoginPage() {
                       onClick={() => {
                         const quickSession = createQuickDemoSession(credential.email);
                         setSession({ token: quickSession.accessToken, user: quickSession.user });
+                        showToast({ title: 'Mode demo aktif', description: `Masuk sebagai ${roleLabels[quickSession.user.role]}.`, tone: 'success' });
                         navigate(getDefaultRouteByRole(quickSession.user.role), { replace: true });
                       }}
                     >

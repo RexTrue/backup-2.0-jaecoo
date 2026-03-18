@@ -6,16 +6,21 @@ import { Card } from '@/common/components/ui/card';
 import { EmptyState } from '@/common/components/feedback/empty-state';
 import { ErrorState } from '@/common/components/feedback/error-state';
 import { LoadingState } from '@/common/components/feedback/loading-state';
+import { useToast } from '@/common/components/feedback/toast-provider';
+import { useConfirm } from '@/common/components/feedback/confirm-dialog-provider';
 import { Input } from '@/common/components/ui/input';
 import { Button } from '@/common/components/ui/button';
 import { Select } from '@/common/components/ui/select';
 import { FieldError, FieldHint, FieldLabel } from '@/common/components/forms/form-field';
 import { FormShell } from '@/common/components/forms/form-shell';
+import { FormDirtyBanner } from '@/common/components/forms/form-dirty-banner';
 import { PayloadPreview } from '@/common/components/forms/payload-preview';
 import { ListCard } from '@/common/components/data-display/list-card';
 import { PageHeader } from '@/common/components/page/page-header';
+import { PermissionGate } from '@/common/components/auth/permission-gate';
 import { getVehicleImageByModel } from '@/common/lib/vehicle-images';
 import { shouldUseMockFallback } from '@/common/lib/query-fallback';
+import { useUnsavedChanges } from '@/common/hooks/use-unsaved-changes';
 import { vehicleRowsMock } from '@/modules/vehicles/mocks/vehicle.mock';
 import { useCreateVehicle, useVehicles } from '@/modules/vehicles/hooks/use-vehicles';
 import { mapVehicleToListRow } from '@/modules/vehicles/mappers/vehicle-mappers';
@@ -39,10 +44,20 @@ export function VehicleListPage() {
   const vehiclesQuery = useVehicles();
   const vehicles = vehiclesQuery.data;
   const createVehicleMutation = useCreateVehicle();
-  const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { showToast } = useToast();
+  const { confirm } = useConfirm();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { no_rangka: '', plat_nomor: '', jenis_mobil: 'JAECOO J7 SHS-P', warna: '', tahun: 2025, kilometer: 0, nik_pemilik: '' },
   });
+
+  useUnsavedChanges({ when: isDirty });
 
   const selectedModel = watch('jenis_mobil') || 'JAECOO J7 SHS-P';
   const vehicleImage = getVehicleImageByModel(selectedModel);
@@ -64,9 +79,11 @@ export function VehicleListPage() {
     try {
       await createVehicleMutation.mutateAsync(payload);
       setSubmitState('Payload kendaraan berhasil dikirim.');
+      showToast({ title: 'Kendaraan disimpan', description: 'Payload kendaraan berhasil dikirim ke service layer.', tone: 'success' });
       reset();
     } catch {
       setSubmitState('Payload kendaraan siap integrasi. Endpoint backend belum merespons.');
+      showToast({ title: 'Backend belum merespons', description: 'Payload kendaraan tetap bisa diperiksa di panel preview.', tone: 'info' });
     }
   });
 
@@ -75,7 +92,8 @@ export function VehicleListPage() {
       <PageHeader eyebrow="Kendaraan" title="Kendaraan" />
       <div className="grid gap-4 xl:grid-cols-[1fr_0.95fr]">
         <FormShell eyebrow="Form" title="Input Kendaraan" subtitle="Field mengikuti tabel Kendaraan pada database.">
-          <form className="grid gap-4 md:grid-cols-2" onSubmit={onSubmit}>
+          <FormDirtyBanner visible={isDirty} />
+          <form className="mt-4 grid gap-4 md:grid-cols-2" onSubmit={onSubmit}>
             <div className="md:col-span-2">
               <FieldLabel htmlFor="no_rangka">Nomor Rangka</FieldLabel>
               <Input id="no_rangka" placeholder="MHCJAECOOJ7YOGYA01" {...register('no_rangka')} />
@@ -115,6 +133,20 @@ export function VehicleListPage() {
             </div>
             <div className="md:col-span-2 flex flex-wrap items-center gap-3">
               <Button type="submit" disabled={isSubmitting || createVehicleMutation.isPending}>Simpan Kendaraan</Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={async () => {
+                  if (!isDirty) return reset();
+                  const approved = await confirm({ title: 'Reset form kendaraan?', description: 'Perubahan yang belum disimpan akan hilang.' });
+                  if (approved) {
+                    reset();
+                    showToast({ title: 'Form direset', description: 'Input kendaraan kembali ke nilai awal.' });
+                  }
+                }}
+              >
+                Reset
+              </Button>
               {submitState ? <span className="text-sm theme-muted">{submitState}</span> : null}
             </div>
           </form>
@@ -147,10 +179,21 @@ export function VehicleListPage() {
                   footer={(
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="text-sm theme-muted">Plat: {row.plate}</p>
-                      <div className="action-strip">
-                        <Button variant="secondary" type="button">Edit</Button>
-                        <Button variant="danger" type="button">Hapus</Button>
-                      </div>
+                      <PermissionGate permission="vehicles:view">
+                        <div className="action-strip">
+                          <Button variant="secondary" type="button">Edit</Button>
+                          <Button
+                            variant="danger"
+                            type="button"
+                            onClick={async () => {
+                              const approved = await confirm({ title: `Hapus kendaraan ${row.plate}?`, description: 'Aksi ini masih simulasi frontend.', confirmLabel: 'Hapus', tone: 'danger' });
+                              if (approved) showToast({ title: 'Aksi hapus dicatat', description: 'Endpoint delete kendaraan belum diaktifkan.', tone: 'info' });
+                            }}
+                          >
+                            Hapus
+                          </Button>
+                        </div>
+                      </PermissionGate>
                     </div>
                   )}
                 />
@@ -170,10 +213,21 @@ export function VehicleListPage() {
                 footer={(
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="text-sm theme-muted">Plat: {row.plate}</p>
-                    <div className="action-strip">
-                      <Button variant="secondary" type="button">Edit</Button>
-                      <Button variant="danger" type="button">Hapus</Button>
-                    </div>
+                    <PermissionGate permission="vehicles:view">
+                      <div className="action-strip">
+                        <Button variant="secondary" type="button">Edit</Button>
+                        <Button
+                          variant="danger"
+                          type="button"
+                          onClick={async () => {
+                            const approved = await confirm({ title: `Hapus kendaraan ${row.plate}?`, description: 'Aksi ini akan dihubungkan ke endpoint kendaraan pada tahap backend.', confirmLabel: 'Hapus', tone: 'danger' });
+                            if (approved) showToast({ title: 'Aksi hapus dicatat', description: 'Endpoint delete kendaraan belum diaktifkan.', tone: 'info' });
+                          }}
+                        >
+                          Hapus
+                        </Button>
+                      </div>
+                    </PermissionGate>
                   </div>
                 )}
               />

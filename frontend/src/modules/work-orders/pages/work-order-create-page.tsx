@@ -7,8 +7,12 @@ import { Input } from '@/common/components/ui/input';
 import { Card } from '@/common/components/ui/card';
 import { Select } from '@/common/components/ui/select';
 import { Textarea } from '@/common/components/ui/textarea';
+import { useToast } from '@/common/components/feedback/toast-provider';
+import { useConfirm } from '@/common/components/feedback/confirm-dialog-provider';
 import { FieldError, FieldHint, FieldLabel } from '@/common/components/forms/form-field';
+import { FormDirtyBanner } from '@/common/components/forms/form-dirty-banner';
 import { PayloadPreview } from '@/common/components/forms/payload-preview';
+import { useUnsavedChanges } from '@/common/hooks/use-unsaved-changes';
 import { useCreateWorkOrder } from '@/modules/work-orders/hooks/use-work-orders';
 import { type CreateWorkOrderPayload } from '@/modules/work-orders/types/work-order.types';
 
@@ -29,10 +33,19 @@ export function WorkOrderCreatePage() {
   const [lastPayload, setLastPayload] = useState<Record<string, unknown>>();
   const [submitState, setSubmitState] = useState<string>();
   const createWorkOrderMutation = useCreateWorkOrder();
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { showToast } = useToast();
+  const { confirm } = useConfirm();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { status: 'OPEN', statusServis: 'ANTRIAN', prioritas: 'NORMAL', no_rangka: '', keluhan: '', detailServis: '' },
   });
+
+  useUnsavedChanges({ when: isDirty });
 
   return (
     <div className="grid gap-5 xl:grid-cols-[0.7fr_1.3fr]">
@@ -43,7 +56,8 @@ export function WorkOrderCreatePage() {
       </Card>
 
       <Card>
-        <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit(async (values) => {
+        <FormDirtyBanner visible={isDirty} />
+        <form className="mt-4 grid gap-4 md:grid-cols-2" onSubmit={handleSubmit(async (values) => {
           const payload: CreateWorkOrderPayload & { detail_servis?: string[] } = {
             no_rangka: values.no_rangka,
             waktuMasuk: values.waktuMasuk || undefined,
@@ -63,9 +77,11 @@ export function WorkOrderCreatePage() {
           try {
             await createWorkOrderMutation.mutateAsync(payload);
             setSubmitState('Payload work order berhasil dikirim.');
+            showToast({ title: 'Work order disimpan', description: 'Payload work order berhasil dikirim ke service layer.', tone: 'success' });
             reset();
           } catch {
             setSubmitState('Payload work order siap integrasi. Endpoint backend belum merespons.');
+            showToast({ title: 'Backend belum merespons', description: 'Payload work order tetap bisa diperiksa di panel preview.', tone: 'info' });
           }
         })}>
           <div>
@@ -121,6 +137,21 @@ export function WorkOrderCreatePage() {
           </div>
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
             <Button type="submit" className="mt-2" disabled={isSubmitting || createWorkOrderMutation.isPending}>Simpan Work Order</Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="mt-2"
+              onClick={async () => {
+                if (!isDirty) return reset();
+                const approved = await confirm({ title: 'Reset form work order?', description: 'Perubahan yang belum disimpan akan hilang.' });
+                if (approved) {
+                  reset();
+                  showToast({ title: 'Form direset', description: 'Input work order kembali ke nilai awal.' });
+                }
+              }}
+            >
+              Reset
+            </Button>
             {submitState ? <span className="text-sm theme-muted">{submitState}</span> : null}
           </div>
         </form>
