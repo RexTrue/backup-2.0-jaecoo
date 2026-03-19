@@ -13,8 +13,16 @@ const vehicleImageEntries: Array<{ patterns: string[]; image: VehicleImageMatch 
     image: { src: '/assets/j7shsp.webp', alt: 'JAECOO J7 SHS-P' },
   },
   {
+    patterns: ['j7 awd'],
+    image: { src: '/assets/j7shsp.webp', alt: 'JAECOO J7 AWD' },
+  },
+  {
     patterns: ['j8 shs-p ardis', 'j8 shsp ardis', 'j8 shs p ardis', 'j8 shs-p'],
     image: { src: '/assets/j8shspardis.webp', alt: 'JAECOO J8 SHS-P Ardis' },
+  },
+  {
+    patterns: ['j8 awd'],
+    image: { src: '/assets/j8ardis.webp', alt: 'JAECOO J8 AWD' },
   },
   {
     patterns: ['j8 ardis', 'j8'],

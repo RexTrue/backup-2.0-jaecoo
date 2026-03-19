@@ -35,6 +35,7 @@ export interface Vehicle {
 
 export interface WorkOrder {
   id_wo: number;
+  nomor_wo_pusat?: string | null;
   waktuMasuk: string;
   status: WorkOrderStatus;
   no_rangka: string;

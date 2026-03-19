@@ -57,16 +57,13 @@ export const rolePermissions: Record<Role, Permission[]> = {
     'work-orders:create',
     'services:view',
   ],
-  MEKANIK: ['dashboard:view', 'services:view', 'services:update', 'mechanic:view-own'],
+  MEKANIK: ['dashboard:view', 'work-orders:view', 'services:view', 'services:update', 'mechanic:view-own'],
 };
 
 const routePermissionMatchers: Array<{ pattern: RegExp; permission: Permission }> = [
   { pattern: /^\/mechanic(\/|$)/, permission: 'mechanic:view-own' },
   { pattern: /^\/users(\/|$)/, permission: 'users:view' },
   { pattern: /^\/reports(\/|$)/, permission: 'reports:view' },
-  { pattern: /^\/schedules(\/|$)/, permission: 'schedules:view' },
-  { pattern: /^\/customers(\/|$)/, permission: 'customers:view' },
-  { pattern: /^\/vehicles(\/|$)/, permission: 'vehicles:view' },
   { pattern: /^\/work-orders\/new(\/|$)/, permission: 'work-orders:create' },
   { pattern: /^\/work-orders(\/|$)/, permission: 'work-orders:view' },
   { pattern: /^\/services(\/|$)/, permission: 'services:view' },
@@ -89,6 +86,5 @@ export function canAccessPath(role: Role | null | undefined, pathname: string) {
 }
 
 export function getDefaultRouteByRole(role: Role | null | undefined) {
-  if (role === 'MEKANIK') return '/mechanic/tasks';
   return '/dashboard';
 }

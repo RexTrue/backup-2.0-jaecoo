@@ -1,37 +1,83 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/common/components/ui/card';
+import { useAuthStore } from '@/modules/auth/store/auth-store';
+import { getUnseenCount, getUnseenServiceStatusCounts } from '@/common/lib/unseen-notifications';
 import { DashboardConfig } from '@/modules/dashboard/types/dashboard.types';
+import { useUnseenRefresh } from '@/common/hooks/use-unseen-refresh';
+import { dashboardTone } from '@/modules/dashboard/lib/dashboard-tone';
+import { cn } from '@/common/utils/cn';
+import type { Service } from '@/common/types/domain';
 
-export function DashboardHeroSection({ config }: { config: DashboardConfig }) {
+export function DashboardHeroSection({ config, services }: { config: DashboardConfig; services: Service[] }) {
   const navigate = useNavigate();
+  const role = useAuthStore((state) => state.user?.role);
+  const monitoringCards = config.monitoringCards ?? [];
+  useUnseenRefresh();
+  const workOrderBadgeCount = getUnseenCount(role, 'work-orders');
+  const serviceBadgeCount = getUnseenCount(role, 'services');
+  const serviceStatusBadgeCounts = useMemo(() => getUnseenServiceStatusCounts(role, services), [role, services]);
 
   return (
-    <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+    <section className="grid gap-4 xl:grid-cols-[1.28fr_0.72fr]">
       <Card className="overflow-hidden">
         <div>
           <p className="text-xs uppercase tracking-[0.28em] theme-muted">{config.eyebrow}</p>
-          <h2 className="section-title mt-4">{config.heading}</h2>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {config.focusCards.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => navigate(item.href)}
-                className={`flex min-h-[168px] flex-col justify-between overflow-hidden rounded-[22px] border p-4 text-left transition duration-300 hover:-translate-y-1 hover:scale-[1.01] ${item.tone}`}
-              >
-                <div className="space-y-3">
-                  <p className="min-h-[40px] text-sm leading-5 theme-text">{item.label}</p>
-                  {item.chip ? <span className="inline-flex max-w-full rounded-full border border-[color:var(--line)] bg-black/18 px-2.5 py-1 text-[11px] leading-4 theme-muted">{item.chip}</span> : null}
-                </div>
-                <p className="mt-5 text-2xl font-semibold leading-none tracking-tight theme-text md:text-3xl">{item.value}</p>
-              </button>
-            ))}
+          <div className="mt-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <h2 className="section-title">{config.heading}</h2>
+            <p className="max-w-2xl text-sm leading-6 theme-muted">
+              Ringkasan cepat untuk memantau kondisi operasional sesuai peran tanpa membuat dashboard terasa terlalu padat.
+            </p>
+          </div>
+          <div className="mt-6 grid gap-4 xl:grid-cols-3">
+            {monitoringCards.map((item) => {
+              const tone = dashboardTone[item.tone] ?? dashboardTone.info;
+              const badgeCount = item.unseenSection === 'work-orders'
+                ? workOrderBadgeCount
+                : item.unseenStatus
+                  ? serviceStatusBadgeCounts[item.unseenStatus]
+                  : item.unseenSection === 'services'
+                    ? serviceBadgeCount
+                    : 0;
+
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => navigate(item.href)}
+                  className={cn(
+                    'dashboard-interactive-card flex min-h-[174px] flex-col justify-between rounded-[24px] border p-5 text-left md:p-6',
+                    tone.panel,
+                  )}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className={cn('text-sm font-medium leading-6 md:text-base', tone.title)}>{item.label}</p>
+                      <div className="flex items-center gap-2">
+                        {badgeCount > 0 ? <span className="inline-flex min-w-[22px] items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-semibold text-white shadow-[0_0_0_4px_rgba(239,68,68,0.18)]">{badgeCount}</span> : null}
+                        <span className={cn('inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold md:text-xs', tone.chip)}>
+                          Live
+                        </span>
+                      </div>
+                    </div>
+                    <p className={cn('text-4xl font-semibold leading-none tracking-tight md:text-5xl', tone.value)}>{item.value}</p>
+                  </div>
+                  <p className="text-sm leading-6 text-[color:var(--text)]/78 dark:theme-muted">{item.note}</p>
+                </button>
+              );
+            })}
           </div>
         </div>
       </Card>
 
       <Card className="overflow-hidden p-0">
-        <img src={config.heroImage} alt="JAECOO" className="h-full min-h-[300px] w-full rounded-xl object-cover transition duration-700 hover:scale-[1.02]" />
+        <button
+          type="button"
+          onClick={() => navigate('/services')}
+          className="dashboard-interactive-card block h-full w-full rounded-[28px] p-0 focus-visible:outline-none"
+        >
+          <img src={config.heroImage} alt="JAECOO" className="h-full min-h-[300px] w-full rounded-xl object-cover transition duration-700 hover:scale-[1.02]" />
+        </button>
       </Card>
     </section>
   );

@@ -66,7 +66,7 @@ export default function LandingPage() {
 
             <div className="grid gap-6">
               <Card className="overflow-hidden p-0">
-                <img src="/assets/img2.webp" alt="JAECOO" className="h-[240px] w-full rounded-xl object-cover transition duration-700 hover:scale-[1.03] md:h-[280px] xl:h-full" />
+                <img src="/assets/img11.jpeg" alt="JAECOO" className="h-[240px] w-full rounded-xl object-cover transition duration-700 hover:scale-[1.03] md:h-[280px] xl:h-full" />
               </Card>
             </div>
           </section>
@@ -80,11 +80,6 @@ export default function LandingPage() {
             ))}
           </section>
 
-          <section>
-            <Card className="overflow-hidden p-0">
-              <img src="/assets/img3.webp" alt="JAECOO vehicle" className="h-full min-h-[260px] w-full rounded-xl object-cover transition duration-700 hover:scale-[1.02]" />
-            </Card>
-          </section>
         </div>
       </LandingShell>
 

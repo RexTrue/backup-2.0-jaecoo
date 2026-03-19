@@ -1,18 +1,33 @@
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/common/components/ui/card';
 import { StatusBadge } from '@/common/components/data-display/status-badge';
-import { serviceStatusGlowMap, serviceStatusPanelMap } from '@/common/lib/status-appearance';
+import { EmptyState } from '@/common/components/feedback/empty-state';
 import { DashboardConfig } from '@/modules/dashboard/types/dashboard.types';
+import { useAuthStore } from '@/modules/auth/store/auth-store';
+import { getUnseenCount } from '@/common/lib/unseen-notifications';
+import { useUnseenRefresh } from '@/common/hooks/use-unseen-refresh';
+
+function getSectionTitle(role?: DashboardConfig['role']) {
+  if (role === 'MEKANIK') return 'Progress Kendaraan';
+  if (role === 'FRONTLINE') return 'Daftar Tindak Lanjut';
+  return 'Active List';
+}
 
 export function DashboardWorkOrderSection({ config }: { config: DashboardConfig }) {
   const navigate = useNavigate();
+  const role = useAuthStore((state) => state.user?.role);
+  useUnseenRefresh();
+  const workOrderBadgeCount = getUnseenCount(role, 'work-orders');
 
   return (
-    <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+    <section>
       <Card>
         <div>
           <p className="text-xs uppercase tracking-[0.28em] theme-muted">Work Order</p>
-          <h3 className="mt-3 text-xl font-semibold">Active List</h3>
+          <div className="mt-3 flex items-center gap-2">
+            <h3 className="text-xl font-semibold">{getSectionTitle(config.role)}</h3>
+            {workOrderBadgeCount > 0 ? <span className="inline-flex min-w-[22px] items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-semibold text-white shadow-[0_0_0_4px_rgba(239,68,68,0.18)]">{workOrderBadgeCount}</span> : null}
+          </div>
         </div>
 
         <div className="mt-5 overflow-hidden rounded-[24px] border border-[color:var(--line)]">
@@ -23,12 +38,16 @@ export function DashboardWorkOrderSection({ config }: { config: DashboardConfig 
             <span>Masuk</span>
           </div>
           <div className="divide-y divide-[color:var(--line)]">
+            {config.activeList.length === 0 ? <div className="p-6"><EmptyState message="Belum ada work order aktif untuk ditampilkan." /></div> : null}
             {config.activeList.map((item) => (
-              <button type="button" key={item.wo} onClick={() => navigate('/work-orders')} className="w-full px-4 py-4 text-left text-sm theme-text transition duration-300 hover:bg-[color:var(--panel-light)] hover:-translate-y-0.5">
+              <button type="button" key={item.wo} onClick={() => navigate(item.href)} className="w-full px-4 py-4 text-left text-sm theme-text transition duration-300 hover:bg-[color:var(--panel-light)] hover:-translate-y-0.5">
                 <div className="space-y-3 md:hidden">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-semibold">{item.wo}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold">{item.wo}</p>
+                        {item.isNew ? <span className="inline-flex h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_0_4px_rgba(239,68,68,0.18)]" aria-label="Baru" /> : null}
+                      </div>
                       <p className="mt-1 text-xs theme-muted">{item.plate}</p>
                     </div>
                     <span className="text-xs theme-muted">{item.time}</span>
@@ -41,7 +60,10 @@ export function DashboardWorkOrderSection({ config }: { config: DashboardConfig 
 
                 <div className="hidden grid-cols-[1.15fr_1fr_1.2fr_0.8fr] gap-3 md:grid">
                   <div className="min-w-0">
-                    <p className="font-semibold">{item.wo}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">{item.wo}</p>
+                      {item.isNew ? <span className="inline-flex h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_0_4px_rgba(239,68,68,0.18)]" aria-label="Baru" /> : null}
+                    </div>
                     <p className="mt-1 truncate text-xs theme-muted">{item.plate}</p>
                   </div>
                   <span>{item.model}</span>
@@ -53,28 +75,6 @@ export function DashboardWorkOrderSection({ config }: { config: DashboardConfig 
               </button>
             ))}
           </div>
-        </div>
-      </Card>
-
-      <Card>
-        <p className="text-xs uppercase tracking-[0.28em] theme-muted">Prioritas</p>
-        <div className="mt-5 space-y-3">
-          {config.priorityList.map((item) => (
-            <button
-              type="button"
-              onClick={() => navigate(item.href)}
-              key={`${item.title}-${item.status}`}
-              className={`w-full rounded-[22px] border p-4 text-left transition hover:-translate-y-1 ${serviceStatusPanelMap[item.status]} ${serviceStatusGlowMap[item.status]}`}
-            >
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <p className="min-w-0 text-sm font-semibold leading-5 theme-text">{item.title}</p>
-                  <StatusBadge status={item.status} />
-                </div>
-                <p className="text-sm leading-6 theme-muted">{item.note}</p>
-              </div>
-            </button>
-          ))}
         </div>
       </Card>
     </section>

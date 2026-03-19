@@ -2,13 +2,14 @@ import { Link } from 'react-router-dom';
 import { Service } from '@/common/types/domain';
 import { Card } from '@/common/components/ui/card';
 import { StatusBadge } from '@/common/components/data-display/status-badge';
+import { formatWorkOrderCode } from '@/common/lib/work-order-code';
 import { Button } from '@/common/components/ui/button';
 import { serviceStatusGlowMap, serviceStatusPanelMap } from '@/common/lib/status-appearance';
 
 const priorityMap = {
-  NORMAL: 'theme-muted',
-  HIGH: 'text-amber-200',
-  URGENT: 'text-rose-200',
+  NORMAL: 'priority-text--normal',
+  HIGH: 'priority-text--high',
+  URGENT: 'priority-text--urgent',
 } as const;
 
 export function ServiceCard({ service }: { service: Service }) {
@@ -23,7 +24,7 @@ export function ServiceCard({ service }: { service: Service }) {
       </div>
       <div className="flex items-center justify-between text-xs theme-muted">
         <span className={priorityMap[service.prioritas]}>Prioritas {service.prioritas}</span>
-        <span>WO #{service.id_wo}</span>
+        <span>{formatWorkOrderCode({ id_wo: service.id_wo })}</span>
       </div>
       <div className="action-strip pt-1">
         <Link to={`/services/${service.id_servis}`}><Button variant="secondary" type="button">Detail</Button></Link>

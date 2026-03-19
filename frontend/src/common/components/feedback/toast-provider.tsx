@@ -30,8 +30,8 @@ function ToastViewport({ items, onClose }: { items: ToastItem[]; onClose: (id: s
           key={item.id}
           className={cn(
             'pointer-events-auto flex w-full max-w-md items-start justify-between gap-4 rounded-[24px] border px-4 py-4 shadow-[0_20px_55px_rgba(0,0,0,0.18)] backdrop-blur-xl',
-            item.tone === 'success' && 'border-emerald-300/20 bg-emerald-500/12 text-emerald-50',
-            item.tone === 'error' && 'border-red-300/20 bg-red-500/12 text-red-50',
+            item.tone === 'success' && 'border-emerald-300/24 bg-emerald-500/14 theme-text',
+            item.tone === 'error' && 'border-red-300/24 bg-red-500/14 theme-text',
             (!item.tone || item.tone === 'info') && 'border-[color:var(--line)] bg-[color:var(--panel)] theme-text',
           )}
           role="status"

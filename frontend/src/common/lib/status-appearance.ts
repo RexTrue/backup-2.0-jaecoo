@@ -28,10 +28,10 @@ export const serviceStatusPanelMap: Record<ServiceStatus, string> = {
 };
 
 export const serviceStatusGlowMap: Record<ServiceStatus, string> = {
-  ANTRIAN: 'shadow-[0_10px_24px_rgba(148,163,184,0.08)]',
-  DIKERJAKAN: 'shadow-[0_10px_24px_rgba(56,189,248,0.09)]',
-  TEST_DRIVE: 'shadow-[0_10px_24px_rgba(167,139,250,0.09)]',
-  SELESAI: 'shadow-[0_10px_24px_rgba(52,211,153,0.09)]',
-  DIAMBIL: 'shadow-[0_10px_24px_rgba(45,212,191,0.09)]',
-  TERKENDALA: 'shadow-[0_10px_24px_rgba(251,113,133,0.09)]',
+  ANTRIAN: '',
+  DIKERJAKAN: '',
+  TEST_DRIVE: '',
+  SELESAI: '',
+  DIAMBIL: '',
+  TERKENDALA: '',
 };

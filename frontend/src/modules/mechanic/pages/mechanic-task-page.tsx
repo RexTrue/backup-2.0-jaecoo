@@ -1,82 +1,117 @@
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Card } from '@/common/components/ui/card';
 import { StatusBadge } from '@/common/components/data-display/status-badge';
 import { Button } from '@/common/components/ui/button';
-import { PriorityLevel, ServiceStatus } from '@/common/types/domain';
+import { EmptyState } from '@/common/components/feedback/empty-state';
+import { LoadingState } from '@/common/components/feedback/loading-state';
+import type { Customer, Service, ServiceStatus, Vehicle, WorkOrder } from '@/common/types/domain';
 import { serviceStatusGlowMap, serviceStatusPanelMap } from '@/common/lib/status-appearance';
-import { mechanicTasksMock } from '@/modules/mechanic/mocks/mechanic.mock';
-import { mechanicStatusSummaryMock } from '@/modules/mechanic/mocks/mechanic.mock';
+import { getLocalEntities, mergeEntities } from '@/common/lib/local-entity-store';
+import { useServices } from '@/modules/services/hooks/use-services';
+import { useWorkOrders } from '@/modules/work-orders/hooks/use-work-orders';
+import { buildWorkOrderRecords } from '@/modules/work-orders/lib/work-order-records';
 
-
-
-const priorityTone = {
-  NORMAL: 'border-[color:var(--line)] bg-[color:var(--panel-light)] theme-muted',
-  HIGH: 'border-amber-300/24 bg-amber-400/14 text-amber-100',
-  URGENT: 'border-rose-300/24 bg-rose-400/14 text-rose-100',
-} as const;
+const boardStatuses: ServiceStatus[] = ['ANTRIAN', 'DIKERJAKAN', 'TEST_DRIVE', 'SELESAI', 'TERKENDALA'];
 
 export function MechanicTaskPage() {
+  const servicesQuery = useServices();
+  const workOrdersQuery = useWorkOrders();
+
+  const localServices = useMemo(() => getLocalEntities<Service>('services'), []);
+  const localWorkOrders = useMemo(() => getLocalEntities<WorkOrder>('work-orders'), []);
+  const localVehicles = useMemo(() => getLocalEntities<Vehicle>('vehicles'), []);
+  const localCustomers = useMemo(() => getLocalEntities<Customer>('customers'), []);
+
+  const services = useMemo(() => mergeEntities(servicesQuery.data ?? [], localServices, (item) => item.id_servis), [localServices, servicesQuery.data]);
+  const workOrders = useMemo(() => mergeEntities(workOrdersQuery.data ?? [], localWorkOrders, (item) => item.id_wo), [localWorkOrders, workOrdersQuery.data]);
+
+  const records = useMemo(
+    () => buildWorkOrderRecords({ workOrders, services, vehicles: localVehicles, customers: localCustomers }).filter((record) => record.service && boardStatuses.includes(record.service.status)),
+    [localCustomers, localVehicles, services, workOrders],
+  );
+
+  const statusCounts = boardStatuses.reduce<Record<ServiceStatus, number>>(
+    (acc, status) => ({ ...acc, [status]: records.filter((record) => record.service?.status === status).length }),
+    { ANTRIAN: 0, DIKERJAKAN: 0, TEST_DRIVE: 0, SELESAI: 0, DIAMBIL: 0, TERKENDALA: 0 },
+  );
+
+  const summaryCards = [
+    { label: 'Antrian Unit', value: statusCounts.ANTRIAN, note: 'Unit yang menunggu masuk workshop.', status: 'ANTRIAN' as const },
+    { label: 'Sedang Dikerjakan', value: statusCounts.DIKERJAKAN, note: 'Unit yang sedang diproses mekanik.', status: 'DIKERJAKAN' as const },
+    { label: 'Terkendala', value: statusCounts.TERKENDALA, note: 'Unit yang perlu keputusan atau tindak lanjut tambahan.', status: 'TERKENDALA' as const },
+  ];
+
   return (
     <div className="space-y-5">
-      <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-        <Card>
-          <p className="text-xs uppercase tracking-[0.28em] theme-muted">Mekanik</p>
-          <h1 className="section-title mt-3">Tugas Saya</h1>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {mechanicStatusSummaryMock.map((item) => (
-              <div key={item.status} className={`rounded-[22px] border p-4 ${serviceStatusPanelMap[item.status]} ${serviceStatusGlowMap[item.status]}`}>
+      <Card>
+        <p className="text-xs uppercase tracking-[0.28em] theme-muted">Mekanik</p>
+        <div className="mt-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <h1 className="section-title">Workshop Progress</h1>
+          <p className="max-w-2xl text-sm leading-6 theme-muted">Ringkasan sederhana untuk melihat kendaraan yang sedang diproses di area workshop.</p>
+        </div>
+        <div className="mt-6 grid gap-4 xl:grid-cols-3">
+          {summaryCards.map((item) => (
+            <div key={item.label} className={`rounded-[24px] border p-5 ${serviceStatusPanelMap[item.status]} ${serviceStatusGlowMap[item.status]}`}>
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm font-medium leading-6 theme-text">{item.label}</p>
                 <StatusBadge status={item.status} />
-                <p className="mt-4 text-3xl font-semibold tracking-tight theme-text">{item.value}</p>
+              </div>
+              <p className="mt-6 text-5xl font-semibold leading-none tracking-tight theme-text">{item.value}</p>
+              <p className="mt-4 text-sm leading-6 theme-muted">{item.note}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <div>
+          <p className="text-xs uppercase tracking-[0.28em] theme-muted">Status</p>
+          <h2 className="mt-3 text-xl font-semibold">Board Snapshot</h2>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {boardStatuses.map((status) => (
+            <Link key={status} to={`/services/status/${status}`} className={`rounded-[22px] border p-4 transition duration-300 hover:-translate-y-0.5 ${serviceStatusPanelMap[status]} ${serviceStatusGlowMap[status]}`}>
+              <StatusBadge status={status} />
+              <p className="mt-4 text-3xl font-semibold tracking-tight theme-text">{statusCounts[status]}</p>
+            </Link>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <div>
+          <p className="text-xs uppercase tracking-[0.28em] theme-muted">Work Order</p>
+          <h2 className="mt-3 text-xl font-semibold">Active List</h2>
+        </div>
+
+        {servicesQuery.isLoading || workOrdersQuery.isLoading ? (
+          <LoadingState message="Memuat pekerjaan mekanik..." rows={3} />
+        ) : records.length === 0 ? (
+          <div className="mt-5"><EmptyState message="Belum ada kendaraan yang masuk ke workflow workshop." /></div>
+        ) : (
+          <div className="mt-5 grid gap-4 xl:grid-cols-2">
+            {records.slice(0, 6).map((record) => (
+              <div key={`${record.workOrder.id_wo}-${record.service?.id_servis ?? 'noservice'}`} className={`space-y-4 rounded-[24px] border p-5 ${serviceStatusPanelMap[record.service?.status ?? 'ANTRIAN']} ${serviceStatusGlowMap[record.service?.status ?? 'ANTRIAN']}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.24em] theme-muted">{record.workOrderCode}</p>
+                    <h3 className="mt-2 text-xl font-semibold theme-text">{record.vehicle?.jenis_mobil ?? record.workOrder.no_rangka}</h3>
+                    <p className="mt-1 text-sm theme-muted">Pelanggan: {record.customer?.nama ?? 'Belum terhubung'}</p>
+                  </div>
+                  <StatusBadge status={record.service?.status ?? 'ANTRIAN'} />
+                </div>
+                <p className="text-sm theme-muted">Keluhan: {record.service?.keluhan ?? '-'}</p>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                  {record.service ? <Link to={`/services/${record.service.id_servis}`}><Button variant="secondary">Detail</Button></Link> : null}
+                  <Button variant="secondary" disabled>Catatan</Button>
+                  <Button disabled={record.service?.status === 'SELESAI'}>Finish</Button>
+                </div>
               </div>
             ))}
           </div>
-        </Card>
-
-        <Card className="rounded-[28px] border border-sky-300/22 bg-sky-400/12 shadow-[0_20px_60px_rgba(56,189,248,0.16)]">
-          <p className="text-xs uppercase tracking-[0.28em] theme-muted">Fokus</p>
-          <div className="mt-4 space-y-3">
-            <div className="rounded-[20px] border border-[color:var(--line)] bg-[color:var(--panel)] p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold theme-text">Unit berikutnya untuk test drive</p>
-                <StatusBadge status="TEST_DRIVE" />
-              </div>
-              <p className="mt-3 text-sm theme-muted">JAECOO J8 · AB 9912 OO</p>
-            </div>
-            <div className="rounded-[20px] border border-rose-300/20 bg-rose-400/12 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold theme-text">Approval tambahan</p>
-                <StatusBadge status="TERKENDALA" />
-              </div>
-              <p className="mt-3 text-sm theme-muted">1 unit menunggu keputusan penggantian part</p>
-            </div>
-          </div>
-        </Card>
-      </section>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        {mechanicTasksMock.map((task) => (
-          <Card key={task.id} className={`space-y-4 border ${serviceStatusPanelMap[task.status]} ${serviceStatusGlowMap[task.status]}`}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.24em] theme-muted">{task.id}</p>
-                <h2 className="mt-2 text-xl font-semibold theme-text">{task.vehicle}</h2>
-                <p className="mt-1 text-sm theme-muted">Pelanggan: {task.customer}</p>
-              </div>
-              <StatusBadge status={task.status} />
-            </div>
-            <p className="text-sm theme-muted">Keluhan: {task.issue}</p>
-            <div className={`inline-flex rounded-[18px] border px-4 py-3 text-sm font-medium ${priorityTone[task.priority]}`}>
-              Prioritas {task.priority}
-            </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-              <Button variant="secondary">Mulai</Button>
-              <Button variant="secondary">Catatan</Button>
-              <Button variant="secondary">Test Drive</Button>
-              <Button>Finish</Button>
-              <Button variant="danger">Hapus</Button>
-            </div>
-          </Card>
-        ))}
-      </div>
+        )}
+      </Card>
     </div>
   );
 }

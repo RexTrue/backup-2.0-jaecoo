@@ -1,25 +1,40 @@
-import { useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { FormEvent, useState } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { appRoutes } from '@/config/route.config';
 import { useAuthStore } from '@/modules/auth/store/auth-store';
 import { Button } from '@/common/components/ui/button';
 import { ThemeLogo } from '@/common/components/ui/theme-logo';
 import { ThemeToggle } from '@/common/components/ui/theme-toggle';
+import { Input } from '@/common/components/ui/input';
+import { RouteTransitionOutlet } from '@/common/components/navigation/route-transition-outlet';
+import { getUnseenCount } from '@/common/lib/unseen-notifications';
+import { useUnseenRefresh } from '@/common/hooks/use-unseen-refresh';
 
 export function MechanicLayout() {
   const navigate = useNavigate();
   const clearSession = useAuthStore((state) => state.clearSession);
   const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const role = useAuthStore((state) => state.user?.role);
+  useUnseenRefresh();
+  const serviceBadgeCount = getUnseenCount(role, 'services');
+  const workOrderBadgeCount = getUnseenCount(role, 'work-orders');
+
+  const submitGlobalSearch = (event: FormEvent) => {
+    event.preventDefault();
+    const keyword = searchValue.trim();
+    navigate(keyword ? `/work-orders?search=${encodeURIComponent(keyword)}` : '/work-orders');
+  };
 
   const menu = (
     <div className="flex h-full min-h-0 flex-col">
-      <Link to="/mechanic/tasks" className="glass-soft rounded-[24px] p-5" onClick={() => setOpen(false)}>
+      <Link to="/dashboard" className="glass-soft rounded-[24px] p-5" onClick={() => setOpen(false)}>
         <ThemeLogo alt="JAECOO" className="h-8 w-auto opacity-95" />
         <p className="mt-4 text-xs uppercase tracking-[0.28em] theme-muted">Mekanik Panel</p>
-        <p className="mt-3 text-[clamp(1.05rem,1.2vw,1.5rem)] font-semibold leading-tight theme-text">Service Tasks</p>
+        <p className="mt-3 text-[clamp(1.05rem,1.2vw,1.5rem)] font-semibold leading-tight theme-text">Service Workspace</p>
       </Link>
       <nav className="sidebar-scroll mt-5 flex-1 space-y-2 overflow-y-auto pr-1">
-        {appRoutes.mechanic.map((route) => (
+        {appRoutes.filter((route) => ['/work-orders', '/services'].includes(route.path)).map((route) => (
           <NavLink
             key={route.path}
             to={route.path}
@@ -33,7 +48,11 @@ export function MechanicLayout() {
               ].join(' ')
             }
           >
-            <p className="text-sm font-semibold theme-text">{route.label}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold theme-text">{route.label}</p>
+              {route.path === '/services' && serviceBadgeCount ? <span className="inline-flex min-w-[22px] items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-semibold text-white shadow-[0_0_0_4px_rgba(239,68,68,0.18)]">{serviceBadgeCount}</span> : null}
+              {route.path === '/work-orders' && workOrderBadgeCount ? <span className="inline-flex min-w-[22px] items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-semibold text-white shadow-[0_0_0_4px_rgba(239,68,68,0.18)]">{workOrderBadgeCount}</span> : null}
+            </div>
           </NavLink>
         ))}
       </nav>
@@ -72,10 +91,10 @@ export function MechanicLayout() {
                     <p className="text-sm font-medium theme-text">Tugas Servis</p>
                   </div>
                 </div>
-<div className="flex items-center gap-3 flex-wrap justify-end"><Button variant="secondary" className="hidden md:inline-flex" onClick={() => navigate('/services')}>Board Servis</Button><ThemeToggle /></div>
+<div className="flex items-center gap-3 flex-wrap justify-end"><form onSubmit={submitGlobalSearch} className="hidden md:block md:min-w-[260px]"><Input value={searchValue} onChange={(event) => setSearchValue(event.target.value)} placeholder="Cari WO, nama, plat, HP..." /></form><Button variant="secondary" className="hidden md:inline-flex" onClick={() => navigate('/services')}>Board Servis</Button><ThemeToggle /></div>
               </div>
             </header>
-            <main className="page-shell animate-fade-up"><Outlet /></main>
+            <main className="page-shell"><RouteTransitionOutlet /></main>
           </div>
         </div>
       </div>

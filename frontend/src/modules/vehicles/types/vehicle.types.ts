@@ -13,4 +13,6 @@ export interface VehicleListRow {
   unit: string;
   km: string;
   color: string;
+  imageSrc: string;
+  imageAlt: string;
 }

@@ -1,12 +1,16 @@
-import { useMemo, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { FormEvent, useMemo, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { appRoutes } from '@/config/route.config';
 import { useAuthStore } from '@/modules/auth/store/auth-store';
 import { Button } from '@/common/components/ui/button';
 import { ThemeToggle } from '@/common/components/ui/theme-toggle';
 import { Card } from '@/common/components/ui/card';
+import { Input } from '@/common/components/ui/input';
 import { hasPermission, roleLabels } from '@/common/lib/authz';
 import { ThemeLogo } from '@/common/components/ui/theme-logo';
+import { RouteTransitionOutlet } from '@/common/components/navigation/route-transition-outlet';
+import { getUnseenCount } from '@/common/lib/unseen-notifications';
+import { useUnseenRefresh } from '@/common/hooks/use-unseen-refresh';
 
 export function DashboardLayout() {
   const navigate = useNavigate();
@@ -14,13 +18,31 @@ export function DashboardLayout() {
   const user = useAuthStore((state) => state.user);
   const clearSession = useAuthStore((state) => state.clearSession);
   const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+
+  const submitGlobalSearch = (event: FormEvent) => {
+    event.preventDefault();
+    const keyword = searchValue.trim();
+    navigate(keyword ? `/work-orders?search=${encodeURIComponent(keyword)}` : '/work-orders');
+    setOpen(false);
+  };
+
+  useUnseenRefresh();
 
   const allowedRoutes = useMemo(
-    () => appRoutes.main.filter((route) => hasPermission(user?.role, route.permission)),
+    () => appRoutes.filter((route) => hasPermission(user?.role, route.permission)),
     [user?.role],
   );
 
   const currentRoute = allowedRoutes.find((item) => location.pathname.startsWith(item.path));
+
+  const workOrderBadgeCount = getUnseenCount(user?.role, 'work-orders');
+  const serviceBadgeCount = getUnseenCount(user?.role, 'services');
+
+  const badgeCountByPath: Record<string, number> = {
+    '/work-orders': workOrderBadgeCount,
+    '/services': serviceBadgeCount,
+  };
 
   const sidebar = (
     <div className="flex h-full min-h-0 flex-col">
@@ -66,17 +88,24 @@ export function DashboardLayout() {
                   ].join(' ')}
                 />
                 <p className={['text-sm font-semibold', isActive ? 'theme-text' : 'theme-muted'].join(' ')}>{route.label}</p>
-                {isActive && <span className="ml-auto h-8 w-1.5 shrink-0 rounded-full bg-[color:var(--accent)]" />}
+                {badgeCountByPath[route.path] ? (
+                  <span className="ml-auto inline-flex min-w-[22px] items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-semibold text-white shadow-[0_0_0_4px_rgba(239,68,68,0.18)]">
+                    {badgeCountByPath[route.path]}
+                  </span>
+                ) : null}
+                {isActive && <span className="ml-2 h-8 w-1.5 shrink-0 rounded-full bg-[color:var(--accent)]" />}
               </div>
             )}
           </NavLink>
         ))}
       </nav>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 text-left">
-        <Button variant="secondary" onClick={() => navigate('/work-orders/new')}>
-          WO Baru
-        </Button>
+      <div className="mt-5 grid grid-cols-1 gap-3 text-left">
+        {hasPermission(user?.role, 'work-orders:create') ? (
+          <Button onClick={() => navigate('/work-orders/new')}>
+            Tambah Work Order Baru +
+          </Button>
+        ) : null}
         <Button
           variant="ghost"
           onClick={() => {
@@ -125,14 +154,17 @@ export function DashboardLayout() {
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-3">
+                  <form onSubmit={submitGlobalSearch} className="hidden md:block md:min-w-[280px]">
+                    <Input value={searchValue} onChange={(event) => setSearchValue(event.target.value)} placeholder="Cari WO, nama, plat, HP, model..." />
+                  </form>
                   <Button variant="secondary" className="hidden md:inline-flex" onClick={() => navigate('/services')}>Board</Button>
                   <ThemeToggle className="shrink-0" />
                 </div>
               </div>
             </header>
 
-            <main className="page-shell animate-fade-up">
-              <Outlet />
+            <main className="page-shell">
+              <RouteTransitionOutlet />
             </main>
           </div>
         </div>

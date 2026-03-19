@@ -1,0 +1,1 @@
+import{u,l as a,j as r}from"./index-LE5FmR58.js";function l({permission:e,fallback:t=null,children:n}){const o=u(i=>{var s;return(s=i.user)==null?void 0:s.role});return a(o,e)?r.jsx(r.Fragment,{children:n}):r.jsx(r.Fragment,{children:t})}export{l as P};

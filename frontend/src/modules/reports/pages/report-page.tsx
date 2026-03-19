@@ -8,11 +8,9 @@ import { Input } from '@/common/components/ui/input';
 import { Select } from '@/common/components/ui/select';
 import { FieldError, FieldLabel } from '@/common/components/forms/form-field';
 import { FormShell } from '@/common/components/forms/form-shell';
-import { PayloadPreview } from '@/common/components/forms/payload-preview';
 import { PageHeader } from '@/common/components/page/page-header';
 import { useRequestReport } from '@/modules/reports/hooks/use-reports';
 import type { ReportFilterPayload } from '@/modules/reports/services/report-api';
-import { reportBucketsMock } from '@/modules/reports/mocks/report.mock';
 
 const schema = z.object({
   tanggal_mulai: z.string().min(1, 'Tanggal mulai wajib diisi'),
@@ -103,21 +101,11 @@ export function ReportPage() {
           </form>
         </FormShell>
 
-        <div className="space-y-4">
-          <div className="grid gap-4 xl:grid-cols-3">
-            {reportBucketsMock.map((bucket) => (
-              <Card key={bucket.title}>
-                <h2 className="text-xl font-semibold theme-text">{bucket.title}</h2>
-                <div className="mt-4 space-y-3">
-                  {bucket.items.map((item) => (
-                    <div key={item} className="rounded-[20px] border border-[color:var(--line)] bg-[color:var(--panel-light)] px-4 py-3 text-sm theme-muted">{item}</div>
-                  ))}
-                </div>
-              </Card>
-            ))}
-          </div>
-          <PayloadPreview title="Payload Laporan" payload={lastPayload} />
-        </div>
+        <Card>
+          <h2 className="text-xl font-semibold theme-text">Status Laporan</h2>
+          <p className="mt-4 text-sm leading-6 theme-muted">{submitState ?? 'Belum ada proses generate laporan. Setelah backend siap, status pemrosesan akan ditampilkan di sini. Saat ini halaman laporan difokuskan untuk menyiapkan filter dan payload yang konsisten.'}</p>
+          {lastPayload ? <p className="mt-3 text-xs uppercase tracking-[0.22em] text-[color:var(--text)]/72">Filter laporan sudah siap digunakan untuk integrasi backend.</p> : null}
+        </Card>
       </div>
     </div>
   );

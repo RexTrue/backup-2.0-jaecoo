@@ -1,10 +1,10 @@
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 import { Permission, hasPermission } from '@/common/lib/authz';
 import { useAuthStore } from '@/modules/auth/store/auth-store';
 
 type PermissionGateProps = PropsWithChildren<{
   permission: Permission;
-  fallback?: React.ReactNode;
+  fallback?: ReactNode;
 }>;
 
 export function PermissionGate({ permission, fallback = null, children }: PermissionGateProps) {

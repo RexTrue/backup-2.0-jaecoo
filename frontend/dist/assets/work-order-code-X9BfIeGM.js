@@ -1,0 +1,1 @@
+function a(t){var u;const n=(u=t==null?void 0:t.nomor_wo_pusat)==null?void 0:u.trim();if(n)return n;const i=t==null?void 0:t.id_wo;return i?`GW-DSP-${String(i).slice(-8).padStart(8,"0")}`:"WO belum terhubung"}export{a as f};

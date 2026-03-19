@@ -1,53 +1,54 @@
+import { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
+import { AppErrorPage } from '@/common/components/feedback/app-error-page';
+import { LoadingState } from '@/common/components/feedback/loading-state';
 import { AuthLayout } from '@/common/layout/auth-layout';
 import { DashboardLayout } from '@/common/layout/dashboard-layout';
-import { MechanicLayout } from '@/common/layout/mechanic-layout';
 import { ProtectedRoute } from '@/app/router/protected-route';
-import LandingPage from '@/modules/landing/pages/landing-page';
-import { LoginPage } from '@/modules/auth/pages/login-page';
-import { DashboardPage } from '@/modules/dashboard/pages/dashboard-page';
-import { CustomerListPage } from '@/modules/customers/pages/customer-list-page';
-import { VehicleListPage } from '@/modules/vehicles/pages/vehicle-list-page';
-import { WorkOrderListPage } from '@/modules/work-orders/pages/work-order-list-page';
-import { WorkOrderCreatePage } from '@/modules/work-orders/pages/work-order-create-page';
-import { ServiceBoardPage } from '@/modules/services/pages/service-board-page';
-import { ServiceDetailPage } from '@/modules/services/pages/service-detail-page';
-import { MechanicTaskPage } from '@/modules/mechanic/pages/mechanic-task-page';
-import { SchedulePage } from '@/modules/schedules/pages/schedule-page';
-import { UserManagementPage } from '@/modules/users/pages/user-management-page';
-import { ReportPage } from '@/modules/reports/pages/report-page';
+
+const LandingPage = lazy(() => import('@/modules/landing/pages/landing-page'));
+const LoginPage = lazy(() => import('@/modules/auth/pages/login-page').then((m) => ({ default: m.LoginPage })));
+const DashboardPage = lazy(() => import('@/modules/dashboard/pages/dashboard-page').then((m) => ({ default: m.DashboardPage })));
+const WorkOrderListPage = lazy(() => import('@/modules/work-orders/pages/work-order-list-page').then((m) => ({ default: m.WorkOrderListPage })));
+const WorkOrderCreatePage = lazy(() => import('@/modules/work-orders/pages/work-order-create-page').then((m) => ({ default: m.WorkOrderCreatePage })));
+const ServiceBoardPage = lazy(() => import('@/modules/services/pages/service-board-page').then((m) => ({ default: m.ServiceBoardPage })));
+const ServiceStatusPage = lazy(() => import('@/modules/services/pages/service-status-page').then((m) => ({ default: m.ServiceStatusPage })));
+const ServiceDetailPage = lazy(() => import('@/modules/services/pages/service-detail-page').then((m) => ({ default: m.ServiceDetailPage })));
+const UserManagementPage = lazy(() => import('@/modules/users/pages/user-management-page').then((m) => ({ default: m.UserManagementPage })));
+const UserCreatePage = lazy(() => import('@/modules/users/pages/user-create-page').then((m) => ({ default: m.UserCreatePage })));
+const ReportPage = lazy(() => import('@/modules/reports/pages/report-page').then((m) => ({ default: m.ReportPage })));
+
+function withSuspense(element: React.ReactNode) {
+  return <Suspense fallback={<LoadingState message="Memuat halaman..." rows={2} />}>{element}</Suspense>;
+}
 
 const router = createBrowserRouter([
-  { path: '/', element: <LandingPage /> },
+  { path: '/', element: withSuspense(<LandingPage />), errorElement: <AppErrorPage /> },
   {
     path: '/login',
     element: <AuthLayout />,
-    children: [{ index: true, element: <LoginPage /> }],
+    errorElement: <AppErrorPage />,
+    children: [{ index: true, element: withSuspense(<LoginPage />) }],
   },
   {
     path: '/',
     element: <ProtectedRoute />,
+    errorElement: <AppErrorPage />,
     children: [
       { path: 'app', element: <Navigate to="/dashboard" replace /> },
       {
         element: <DashboardLayout />,
         children: [
-          { path: 'dashboard', element: <DashboardPage /> },
-          { path: 'customers', element: <CustomerListPage /> },
-          { path: 'vehicles', element: <VehicleListPage /> },
-          { path: 'work-orders', element: <WorkOrderListPage /> },
-          { path: 'work-orders/new', element: <WorkOrderCreatePage /> },
-          { path: 'services', element: <ServiceBoardPage /> },
-          { path: 'services/:serviceId', element: <ServiceDetailPage /> },
-          { path: 'schedules', element: <SchedulePage /> },
-          { path: 'users', element: <UserManagementPage /> },
-          { path: 'reports', element: <ReportPage /> },
+          { path: 'dashboard', element: withSuspense(<DashboardPage />) },
+          { path: 'work-orders', element: withSuspense(<WorkOrderListPage />) },
+          { path: 'work-orders/new', element: withSuspense(<WorkOrderCreatePage />) },
+          { path: 'services', element: withSuspense(<ServiceBoardPage />) },
+          { path: 'services/status/:status', element: withSuspense(<ServiceStatusPage />) },
+          { path: 'services/:serviceId', element: withSuspense(<ServiceDetailPage />) },
+          { path: 'users', element: withSuspense(<UserManagementPage />) },
+          { path: 'users/new', element: withSuspense(<UserCreatePage />) },
+          { path: 'reports', element: withSuspense(<ReportPage />) },
         ],
-      },
-      {
-        path: 'mechanic',
-        element: <MechanicLayout />,
-        children: [{ path: 'tasks', element: <MechanicTaskPage /> }],
       },
     ],
   },

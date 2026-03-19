@@ -1,6 +1,7 @@
 import type { Vehicle } from '@/common/types/domain';
 import type { BackendVehicle } from '@/modules/vehicles/types/vehicle.api';
 import type { VehicleListRow } from '@/modules/vehicles/types/vehicle.types';
+import { getVehicleImageByModel } from '@/common/lib/vehicle-images';
 
 export function mapVehicleFromApi(input: BackendVehicle): Vehicle {
   return {
@@ -16,10 +17,14 @@ export function mapVehicleFromApi(input: BackendVehicle): Vehicle {
 }
 
 export function mapVehicleToListRow(input: Vehicle): VehicleListRow {
+  const image = getVehicleImageByModel(input.jenis_mobil);
+
   return {
     plate: input.plat_nomor,
     unit: input.jenis_mobil || '-',
     km: `${input.kilometer.toLocaleString('id-ID')} km`,
     color: input.warna || '-',
+    imageSrc: image.src,
+    imageAlt: image.alt,
   };
 }
