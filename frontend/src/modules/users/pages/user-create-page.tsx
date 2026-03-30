@@ -75,7 +75,7 @@ export function UserCreatePage() {
     <div className="space-y-5">
       <PageHeader eyebrow="Pegawai" title="Tambah Pegawai" />
       <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-        <FormShell eyebrow="Form" title="Input Pegawai Baru" subtitle="Pisahkan daftar pegawai dan form input untuk alur CRUD yang lebih natural.">
+        <FormShell eyebrow="Form" title="Input Pegawai Baru">
           <FormDirtyBanner visible={isDirty} />
           <form className="mt-4 grid gap-4 md:grid-cols-2" onSubmit={onSubmit}>
             <div className="md:col-span-2">

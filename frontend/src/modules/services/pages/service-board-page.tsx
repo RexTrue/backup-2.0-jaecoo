@@ -38,7 +38,6 @@ export function ServiceBoardPage() {
       <PageHeader eyebrow="Servis" title="Board Servis" />
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <p className="text-sm leading-6 theme-muted">Pilih salah satu status untuk melihat daftar WO per tahap servis dengan pencarian yang lebih terkontrol.</p>
         <div className="w-full md:max-w-sm">
           <Input
             value={search}

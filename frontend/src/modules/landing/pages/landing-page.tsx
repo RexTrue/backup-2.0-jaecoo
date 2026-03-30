@@ -45,8 +45,7 @@ export default function LandingPage() {
                       <span className="text-gradient">Service Management System</span>
                     </h1>
                     <p className="mt-4 max-w-2xl text-sm leading-7 theme-muted md:text-base">
-                      Sistem untuk pengelolaan work order, progres servis, data kendaraan, pelanggan, jadwal,
-                      dan laporan bengkel.
+                      Sistem manajemen internal terpusat yang membantu meringankan beban pekerjaan mengenai informasi terkait bagian workshop JAECOO Yogyakarta. 
                     </p>
                   </div>
                 </div>
@@ -57,9 +56,6 @@ export default function LandingPage() {
                       Masuk Sistem
                     </Button>
                   </Link>
-                  <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--panel-light)] px-4 py-3 text-sm theme-muted">
-                    Akses akun dikelola admin.
-                  </div>
                 </div>
               </div>
             </Card>
@@ -90,14 +86,6 @@ export default function LandingPage() {
               <p className="text-lg font-semibold theme-text">JAECOO Service Management</p>
               <p className="mt-2 text-sm theme-muted">Yogyakarta</p>
             </div>
-
-            {footerGroups.map((group, idx) => (
-              <div key={idx} className="grid gap-3 text-sm theme-muted sm:grid-cols-2 md:grid-cols-1">
-                {group.map((item) => (
-                  <div key={item}>{item}</div>
-                ))}
-              </div>
-            ))}
           </div>
 
           <div className="border-t border-[color:var(--line)] py-4 text-sm theme-muted md:flex md:items-center md:justify-between">

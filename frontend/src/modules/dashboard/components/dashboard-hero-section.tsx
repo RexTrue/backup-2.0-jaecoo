@@ -26,7 +26,7 @@ export function DashboardHeroSection({ config, services }: { config: DashboardCo
           <div className="mt-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <h2 className="section-title">{config.heading}</h2>
             <p className="max-w-2xl text-sm leading-6 theme-muted">
-              Ringkasan cepat untuk memantau kondisi operasional sesuai peran tanpa membuat dashboard terasa terlalu padat.
+              Tampilan ringkasan cepat untuk memantau kondisi operasional.
             </p>
           </div>
           <div className="mt-6 grid gap-4 xl:grid-cols-3">

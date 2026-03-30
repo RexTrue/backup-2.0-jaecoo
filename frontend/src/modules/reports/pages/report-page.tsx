@@ -52,7 +52,7 @@ export function ReportPage() {
     <div className="space-y-5">
       <PageHeader eyebrow="Laporan" title="Laporan" />
       <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-        <FormShell eyebrow="Form" title="Filter Laporan" subtitle="Disiapkan untuk endpoint ekspor atau generate laporan.">
+        <FormShell eyebrow="Form" title="Filter Laporan">
           <form className="grid gap-4 md:grid-cols-2" onSubmit={onSubmit}>
             <div>
               <FieldLabel htmlFor="tanggal_mulai">Tanggal Mulai</FieldLabel>
@@ -103,7 +103,7 @@ export function ReportPage() {
 
         <Card>
           <h2 className="text-xl font-semibold theme-text">Status Laporan</h2>
-          <p className="mt-4 text-sm leading-6 theme-muted">{submitState ?? 'Belum ada proses generate laporan. Setelah backend siap, status pemrosesan akan ditampilkan di sini. Saat ini halaman laporan difokuskan untuk menyiapkan filter dan payload yang konsisten.'}</p>
+          <p className="mt-4 text-sm leading-6 theme-muted">{submitState ?? 'Belum ada proses generate laporan. Catatan: Setelah backend siap, status pemrosesan akan ditampilkan di sini. Saat ini halaman laporan difokuskan untuk menyiapkan filter dan payload yang konsisten.'}</p>
           {lastPayload ? <p className="mt-3 text-xs uppercase tracking-[0.22em] text-[color:var(--text)]/72">Filter laporan sudah siap digunakan untuk integrasi backend.</p> : null}
         </Card>
       </div>
