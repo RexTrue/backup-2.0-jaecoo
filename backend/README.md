@@ -37,6 +37,6 @@ Base URL API: `http://localhost:3000/api`
 
 ## Catatan
 
-- Autentikasi dibuat sederhana agar cepat dipakai untuk UAT lapangan.
-- Token berupa bearer token sederhana berbasis base64, cukup untuk pengujian internal Senin ini.
-- Jika nanti mau produksi, ganti ke JWT + hash password + guard/permission yang proper.
+- Autentikasi sudah menggunakan JWT signed token (dengan expiry) + password hash bcrypt.
+- Jalankan seed ulang setelah update keamanan agar password awal tersimpan sebagai hash.
+- Untuk readiness produksi, gunakan secret kuat pada JWT_SECRET dan jangan pakai default credential.

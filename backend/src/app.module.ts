@@ -12,7 +12,17 @@ import { ReportsModule } from './reports/reports.module';
 import { SchedulesModule } from './schedules/schedules.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, CustomersModule, VehiclesModule, UsersModule, WorkOrdersModule, ServicesModule, ReportsModule, SchedulesModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    CustomersModule,
+    VehiclesModule,
+    UsersModule,
+    WorkOrdersModule,
+    ServicesModule,
+    ReportsModule,
+    SchedulesModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

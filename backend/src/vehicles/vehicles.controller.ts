@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { VehiclesService } from './vehicles.service';
 
 @Controller('vehicles')
@@ -16,14 +24,33 @@ export class VehiclesController {
   }
 
   @Post()
-  create(@Body() body: { no_rangka: string; plat_nomor: string; jenis_mobil?: string | null; warna?: string | null; tahun?: number | null; kilometer: number; nik_pemilik: string }) {
+  create(
+    @Body()
+    body: {
+      no_rangka: string;
+      plat_nomor: string;
+      jenis_mobil?: string | null;
+      warna?: string | null;
+      tahun?: number | null;
+      kilometer: number;
+      nik_pemilik: string;
+    },
+  ) {
     return this.vehiclesService.create(body);
   }
 
   @Patch(':no_rangka')
   update(
     @Param('no_rangka') no_rangka: string,
-    @Body() body: { plat_nomor?: string; jenis_mobil?: string | null; warna?: string | null; tahun?: number | null; kilometer?: number; nik_pemilik?: string },
+    @Body()
+    body: {
+      plat_nomor?: string;
+      jenis_mobil?: string | null;
+      warna?: string | null;
+      tahun?: number | null;
+      kilometer?: number;
+      nik_pemilik?: string;
+    },
   ) {
     return this.vehiclesService.update(no_rangka, body);
   }

@@ -8,10 +8,10 @@ import { ListCard } from '@/common/components/data-display/list-card';
 import { PageHeader } from '@/common/components/page/page-header';
 import { Input } from '@/common/components/ui/input';
 import { Select } from '@/common/components/ui/select';
-import { getLocalEntities, mergeEntities, useLocalEntities } from '@/common/lib/local-entity-store';
+import { mergeEntities, useLocalEntities } from '@/common/lib/local-entity-store';
 import { hasPermission } from '@/common/lib/authz';
 import { useAuthStore } from '@/modules/auth/store/auth-store';
-import { useWorkOrders } from '@/modules/work-orders/hooks/use-work-orders';
+import { useWorkOrders, useDeleteWorkOrder } from '@/modules/work-orders/hooks/use-work-orders';
 import { hasAnyUnseen, markItemsSeen } from '@/common/lib/unseen-notifications';
 import { buildWorkOrderRecords, filterWorkOrderRecords, sortWorkOrderRecords } from '@/modules/work-orders/lib/work-order-records';
 import { useUnseenRefresh } from '@/common/hooks/use-unseen-refresh';
@@ -33,6 +33,7 @@ export function WorkOrderListPage() {
   const localServices = useLocalEntities<Service>('services');
   const localVehicles = useLocalEntities<Vehicle>('vehicles');
   const localCustomers = useLocalEntities<Customer>('customers');
+  const deleteWorkOrderMutation = useDeleteWorkOrder();
 
   const mergedOrders = useMemo(() => mergeEntities(workOrdersQuery.data ?? [], localOrders, (item) => item.id_wo), [workOrdersQuery.data, localOrders]);
 
@@ -95,7 +96,7 @@ export function WorkOrderListPage() {
           <div className="space-y-4">
             <div className="space-y-3">
               {pagedRecords.map((record) => (
-                <div key={record.workOrderCode} className="data-row rounded-[22px] p-4">
+                <div key={record.workOrder.id_wo} className="data-row rounded-[22px] p-4">
                   <ListCard
                     title={record.workOrderCode}
                     subtitle={
@@ -115,7 +116,25 @@ export function WorkOrderListPage() {
                           <p>{record.workOrder.waktuMasuk ? new Date(record.workOrder.waktuMasuk).toLocaleString('id-ID') : '-'}</p>
                         </div>
                         <div className="action-strip mt-3 justify-end">
-                          {record.service ? <Link to={`/services/${record.service.id_servis}`}><Button variant="secondary" type="button">Detail</Button></Link> : null}
+                          {record.service ? (
+                            <Link to={`/services/${record.service.id_servis}`}>
+                              <Button variant="secondary" type="button">Detail</Button>
+                            </Link>
+                          ) : null}
+                          {hasPermission(role, 'work-orders:delete') ? (
+                            <Button
+                              variant="danger"
+                              type="button"
+                              disabled={deleteWorkOrderMutation.isPending}
+                              onClick={() => {
+                                if (window.confirm('Hapus work order ini dan semua data terkait?')) {
+                                  void deleteWorkOrderMutation.mutateAsync(record.workOrder.id_wo);
+                                }
+                              }}
+                            >
+                              {deleteWorkOrderMutation.isPending ? 'Menghapus...' : 'Hapus'}
+                            </Button>
+                          ) : null}
                         </div>
                       </div>
                     }

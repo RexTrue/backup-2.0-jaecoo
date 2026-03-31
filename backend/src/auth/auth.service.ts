@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { compareSync } from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { parseToken, signToken } from '../common/auth';
 
@@ -7,8 +8,15 @@ export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
 
   async login(email: string, password: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user || user.password !== password || !user.isActive) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await this.prisma.user.findUnique({ where: { email: normalizedEmail } });
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Email atau password tidak valid.');
+    }
+
+    const validPassword = compareSync(password, user.password);
+    if (!validPassword) {
       throw new UnauthorizedException('Email atau password tidak valid.');
     }
 
@@ -27,7 +35,9 @@ export class AuthService {
 
   async me(authorization?: string) {
     const session = parseToken(authorization);
-    const user = await this.prisma.user.findUnique({ where: { id_user: session.id_user } });
+    const user = await this.prisma.user.findUnique({
+      where: { id_user: session.id_user },
+    });
     if (!user || !user.isActive) {
       throw new UnauthorizedException('Sesi tidak aktif.');
     }

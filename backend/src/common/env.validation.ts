@@ -2,7 +2,9 @@ export function validateEnvironmentVariables(): void {
   const requiredVars = ['DATABASE_URL', 'JWT_SECRET', 'FRONTEND_URL', 'PORT'];
   const missing = requiredVars.filter((v) => !process.env[v]);
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    throw new Error(
+      `Missing required environment variables: ${missing.join(', ')}`,
+    );
   }
 
   const nodeEnv = process.env.NODE_ENV?.trim() || 'development';
@@ -13,10 +15,15 @@ export function validateEnvironmentVariables(): void {
   process.env.NODE_ENV = nodeEnv;
 
   if (!/^https?:\/\/.+$/i.test(process.env.FRONTEND_URL!)) {
-    throw new Error('FRONTEND_URL must be a valid URL with protocol http/https.');
+    throw new Error(
+      'FRONTEND_URL must be a valid URL with protocol http/https.',
+    );
   }
 
-  if (!Number.isFinite(Number(process.env.BCRYPT_ROUNDS || '0')) || Number(process.env.BCRYPT_ROUNDS) < 8) {
+  if (
+    !Number.isFinite(Number(process.env.BCRYPT_ROUNDS || '0')) ||
+    Number(process.env.BCRYPT_ROUNDS) < 8
+  ) {
     throw new Error('BCRYPT_ROUNDS must be a number >= 8');
   }
 

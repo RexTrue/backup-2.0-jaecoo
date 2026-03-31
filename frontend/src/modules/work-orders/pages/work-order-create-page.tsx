@@ -53,6 +53,12 @@ const vehicleOptions = [
   'JAECOO J8 SHS-P ARDIS',
 ] as const;
 
+function generateLocalIntId(): number {
+  const seconds = Math.floor(Date.now() / 1000);
+  const random = Math.floor(Math.random() * 1000);
+  return Math.min(2147483647, seconds + random);
+}
+
 export function WorkOrderCreatePage() {
   const navigate = useNavigate();
   const createWorkOrderMutation = useCreateWorkOrder();
@@ -129,7 +135,7 @@ export function WorkOrderCreatePage() {
     };
 
     const now = new Date().toISOString();
-    const workOrderId = Date.now();
+    const workOrderId = generateLocalIntId();
     const localCustomer: Customer = payload.customer;
     const localVehicle: Vehicle = payload.vehicle;
     const localWorkOrder: WorkOrder = {
@@ -151,10 +157,8 @@ export function WorkOrderCreatePage() {
 
     try {
       await createWorkOrderMutation.mutateAsync(payload);
-      appendLocalEntity('customers', localCustomer);
-      appendLocalEntity('vehicles', localVehicle);
-      appendLocalEntity('work-orders', localWorkOrder);
-      appendLocalEntity('services', localService);
+      // Hanya catat backend sukses; jangan duplikasi di local storage kecuali butuh offline fallback.
+      // removeLocalEntity bisa dipakai bila catatan lokal sudah ada, tapi default: tidak perlu append.
       markWorkOrderCreated(workOrderId, creatorRole);
       setSubmitState('Work order berhasil dikirim dan disebarkan ke dashboard lain.');
       showToast({

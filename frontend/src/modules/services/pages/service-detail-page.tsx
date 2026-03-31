@@ -62,7 +62,9 @@ export function ServiceDetailPage() {
   const localVehicles = useLocalEntities<Vehicle>('vehicles');
   const localCustomers = useLocalEntities<Customer>('customers');
 
-  const service = serviceDetailQuery.data ?? localServices.find((item) => String(item.id_servis) === serviceId);
+  const localService = localServices.find((item) => String(item.id_servis) === serviceId);
+  const service = serviceDetailQuery.data ?? localService;
+  const isLocalOnlyService = !serviceDetailQuery.data && Boolean(localService);
   const linkedWorkOrder = useMemo(() => localWorkOrders.find((item) => item.id_wo === service?.id_wo), [localWorkOrders, service?.id_wo]);
   const linkedVehicle = useMemo(() => localVehicles.find((item) => item.no_rangka === linkedWorkOrder?.no_rangka), [linkedWorkOrder?.no_rangka, localVehicles]);
   const linkedCustomer = useMemo(() => localCustomers.find((item) => item.nik === linkedVehicle?.nik_pemilik), [linkedVehicle?.nik_pemilik, localCustomers]);
@@ -109,7 +111,7 @@ export function ServiceDetailPage() {
                     onClick={async () => {
                       const approved = await confirm({ title: 'Hapus data servis?', description: 'Data servis akan dihapus secara permanen.', confirmLabel: 'Hapus', tone: 'danger' });
                       if (approved) {
-                        if (isLocalServiceId) {
+                        if (isLocalServiceId || isLocalOnlyService) {
                           // Hapus dari local storage saja
                           writeLocalEntities<Service>('services', localServices.filter((item) => String(item.id_servis) !== serviceId));
                           showToast({ title: 'Servis lokal dihapus', description: 'Data servis dummy telah dihapus dari perangkat ini.', tone: 'success' });

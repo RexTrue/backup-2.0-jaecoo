@@ -12,7 +12,15 @@ export class UsersController {
   }
 
   @Post()
-  create(@Body() body: { email: string; password: string; role: Role; isActive?: boolean }) {
+  create(
+    @Body()
+    body: {
+      email: string;
+      password: string;
+      role: Role;
+      isActive?: boolean;
+    },
+  ) {
     return this.usersService.create(body);
   }
 

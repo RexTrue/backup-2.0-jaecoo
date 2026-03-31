@@ -15,3 +15,8 @@ export async function createWorkOrder(payload: CreateWorkOrderPayload): Promise<
   const { data } = await apiClient.post<BackendWorkOrder | { data?: BackendWorkOrder }>(endpoints.workOrders.create, payload);
   return mapWorkOrderFromBackend(unwrapApiSingle(data) as Record<string, unknown>);
 }
+
+export async function deleteWorkOrder(id: string | number): Promise<{ success: boolean; message: string }> {
+  const { data } = await apiClient.delete<{ success: boolean; message: string }>(endpoints.workOrders.delete(id));
+  return data;
+}

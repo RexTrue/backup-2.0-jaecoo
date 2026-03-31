@@ -1,10 +1,33 @@
-import { Body, Controller, Delete, Get, Headers, Param, Patch, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { WorkOrdersService } from './work-orders.service';
 import { PriorityLevel, StatusServis, WorkOrderStatus } from '@prisma/client';
 
 @Controller('work-orders')
 export class WorkOrdersController {
   constructor(private readonly workOrdersService: WorkOrdersService) {}
+
+  private parseWorkOrderId(id: string): number {
+    const parsed = Number(id);
+    if (
+      !Number.isInteger(parsed) ||
+      parsed <= 0 ||
+      parsed > 2147483647
+    ) {
+      throw new BadRequestException('ID work order tidak valid');
+    }
+
+    return parsed;
+  }
 
   @Get()
   list() {
@@ -13,7 +36,7 @@ export class WorkOrdersController {
 
   @Get(':id')
   detail(@Param('id') id: string) {
-    return this.workOrdersService.detail(Number(id));
+    return this.workOrdersService.detail(this.parseWorkOrderId(id));
   }
 
   @Post()
@@ -24,9 +47,27 @@ export class WorkOrdersController {
       waktuMasuk?: string;
       status?: WorkOrderStatus;
       nomor_wo_pusat?: string;
-      customer?: { nik: string; nama: string; no_hp?: string | null; alamat?: string | null };
-      vehicle?: { no_rangka: string; plat_nomor: string; jenis_mobil?: string | null; warna?: string | null; tahun?: number | null; kilometer?: number; nik_pemilik: string };
-      servis: { keluhan: string; estimasiSelesai?: string | null; status?: StatusServis; prioritas?: PriorityLevel };
+      customer?: {
+        nik: string;
+        nama: string;
+        no_hp?: string | null;
+        alamat?: string | null;
+      };
+      vehicle?: {
+        no_rangka: string;
+        plat_nomor: string;
+        jenis_mobil?: string | null;
+        warna?: string | null;
+        tahun?: number | null;
+        kilometer?: number;
+        nik_pemilik: string;
+      };
+      servis: {
+        keluhan: string;
+        estimasiSelesai?: string | null;
+        status?: StatusServis;
+        prioritas?: PriorityLevel;
+      };
       detail_servis?: string[];
     },
     @Headers('authorization') authorization?: string,
@@ -43,11 +84,11 @@ export class WorkOrdersController {
       nomor_wo_pusat?: string;
     },
   ) {
-    return this.workOrdersService.update(Number(id), body);
+    return this.workOrdersService.update(this.parseWorkOrderId(id), body);
   }
 
   @Delete(':id')
   delete(@Param('id') id: string) {
-    return this.workOrdersService.delete(Number(id));
+    return this.workOrdersService.delete(this.parseWorkOrderId(id));
   }
 }

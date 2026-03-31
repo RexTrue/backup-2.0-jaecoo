@@ -1,1 +1,0 @@
-import{j as e}from"./index-CjO-uRk-.js";function o({message:r}){return e.jsx("div",{className:"rounded-[24px] border border-dashed border-[color:var(--line)] bg-[color:var(--panel-light)] p-6 text-sm theme-muted",children:r})}export{o as E};

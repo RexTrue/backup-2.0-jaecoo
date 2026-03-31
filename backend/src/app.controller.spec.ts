@@ -15,8 +15,14 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return backend banner', () => {
+      expect(appController.getHello()).toBe('JAECOO Service Backend');
+    });
+
+    it('should return health payload', () => {
+      const health = appController.getHealth();
+      expect(health.status).toBe('ok');
+      expect(health.service).toBe('jaecoo-backend');
     });
   });
 });

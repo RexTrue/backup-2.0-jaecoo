@@ -1,7 +1,7 @@
 FROM node:18-alpine AS base
 
-# Install dumb-init
-RUN apk add --no-cache dumb-init
+# Install runtime helpers
+RUN apk add --no-cache dumb-init curl
 
 WORKDIR /app
 

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PriorityLevel, StatusServis, WorkOrderStatus } from '@prisma/client';
 import { parseOptionalDate, parseToken } from '../common/auth';
 import { PrismaService } from '../prisma/prisma.service';
@@ -32,7 +36,10 @@ export class WorkOrdersService {
     return workOrder;
   }
 
-  async update(id: number, body: { status?: WorkOrderStatus; nomor_wo_pusat?: string }) {
+  async update(
+    id: number,
+    body: { status?: WorkOrderStatus; nomor_wo_pusat?: string },
+  ) {
     const workOrder = await this.prisma.workOrder.findUnique({
       where: { id_wo: id },
     });
@@ -56,7 +63,12 @@ export class WorkOrdersService {
       waktuMasuk?: string;
       status?: WorkOrderStatus;
       nomor_wo_pusat?: string;
-      customer?: { nik: string; nama: string; no_hp?: string | null; alamat?: string | null };
+      customer?: {
+        nik: string;
+        nama: string;
+        no_hp?: string | null;
+        alamat?: string | null;
+      };
       vehicle?: {
         no_rangka: string;
         plat_nomor: string;
@@ -137,7 +149,8 @@ export class WorkOrdersService {
         data: {
           id_wo: workOrder.id_wo,
           keluhan: body.servis.keluhan,
-          estimasiSelesai: parseOptionalDate(body.servis.estimasiSelesai) ?? null,
+          estimasiSelesai:
+            parseOptionalDate(body.servis.estimasiSelesai) ?? null,
           status: body.servis.status ?? 'ANTRIAN',
           prioritas: body.servis.prioritas ?? 'NORMAL',
         },
@@ -171,12 +184,17 @@ export class WorkOrdersService {
   }
 
   async delete(id: number) {
+    if (!Number.isInteger(id) || id <= 0 || id > 2147483647) {
+      throw new BadRequestException('ID work order tidak valid');
+    }
+
     const workOrder = await this.prisma.workOrder.findUnique({
       where: { id_wo: id },
       include: {
         servis: {
           include: {
             detail_servis: true,
+            catatan: true,
             riwayat: true,
           },
         },
@@ -189,29 +207,38 @@ export class WorkOrdersService {
 
     // Check if work order can be deleted (only OPEN or CANCELLED status)
     if (workOrder.status !== 'OPEN' && workOrder.status !== 'CANCELLED') {
-      throw new BadRequestException('Work order tidak dapat dihapus karena sudah dalam proses atau selesai');
+      throw new BadRequestException(
+        'Work order tidak dapat dihapus karena sudah dalam proses atau selesai',
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
-      // Delete related records in cascade
-      for (const service of workOrder.servis) {
-        // Delete detail servis
+      // Collect all service IDs
+      const serviceIds = workOrder.servis.map((s) => s.id_servis);
+
+      if (serviceIds.length > 0) {
+        // Delete all detail servis for these services
         await tx.detailServis.deleteMany({
-          where: { id_servis: service.id_servis },
+          where: { id_servis: { in: serviceIds } },
         });
 
-        // Delete riwayat servis
+        // Delete all catatan mekanik for these services
+        await tx.catatanMekanik.deleteMany({
+          where: { id_servis: { in: serviceIds } },
+        });
+
+        // Delete all riwayat servis for these services
         await tx.riwayatServis.deleteMany({
-          where: { id_servis: service.id_servis },
+          where: { id_servis: { in: serviceIds } },
         });
 
-        // Delete servis
-        await tx.servis.delete({
-          where: { id_servis: service.id_servis },
+        // Delete all servis for this work order
+        await tx.servis.deleteMany({
+          where: { id_wo: id },
         });
       }
 
-      // Delete work order
+      // Finally, delete the work order
       await tx.workOrder.delete({
         where: { id_wo: id },
       });

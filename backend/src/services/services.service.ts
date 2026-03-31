@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { StatusServis } from '@prisma/client';
 import { parseOptionalDate } from '../common/auth';
 import { PrismaService } from '../prisma/prisma.service';
@@ -22,17 +26,29 @@ export class ServicesService {
   constructor(private readonly prisma: PrismaService) {}
 
   list() {
-    return this.prisma.servis.findMany({ include: serviceInclude, orderBy: { createdAt: 'desc' } });
+    return this.prisma.servis.findMany({
+      include: serviceInclude,
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async detail(serviceId: number) {
     assertValidServiceId(serviceId);
-    const service = await this.prisma.servis.findUnique({ where: { id_servis: serviceId }, include: serviceInclude });
+    const service = await this.prisma.servis.findUnique({
+      where: { id_servis: serviceId },
+      include: serviceInclude,
+    });
     if (!service) throw new NotFoundException('Servis tidak ditemukan.');
     return service;
   }
 
-  async create(body: { id_wo: number; keluhan: string; estimasiSelesai?: string | null; status?: StatusServis; prioritas?: 'NORMAL' | 'HIGH' | 'URGENT' }) {
+  async create(body: {
+    id_wo: number;
+    keluhan: string;
+    estimasiSelesai?: string | null;
+    status?: StatusServis;
+    prioritas?: 'NORMAL' | 'HIGH' | 'URGENT';
+  }) {
     const service = await this.prisma.servis.create({
       data: {
         id_wo: body.id_wo,
@@ -43,27 +59,41 @@ export class ServicesService {
       },
     });
 
-    await this.prisma.riwayatServis.create({ data: { id_servis: service.id_servis, status: service.status } });
+    await this.prisma.riwayatServis.create({
+      data: { id_servis: service.id_servis, status: service.status },
+    });
     return this.detail(service.id_servis);
   }
 
-  async updateStatus(serviceId: number, body: { status: StatusServis; note?: string }) {
+  async updateStatus(
+    serviceId: number,
+    body: { status: StatusServis; note?: string },
+  ) {
     assertValidServiceId(serviceId);
-    const existing = await this.prisma.servis.findUnique({ where: { id_servis: serviceId } });
+    const existing = await this.prisma.servis.findUnique({
+      where: { id_servis: serviceId },
+    });
     if (!existing) throw new NotFoundException('Servis tidak ditemukan.');
 
     await this.prisma.servis.update({
       where: { id_servis: serviceId },
       data: {
         status: body.status,
-        tanggalSelesai: body.status === 'SELESAI' || body.status === 'DIAMBIL' ? new Date() : existing.tanggalSelesai,
+        tanggalSelesai:
+          body.status === 'SELESAI' || body.status === 'DIAMBIL'
+            ? new Date()
+            : existing.tanggalSelesai,
       },
     });
 
-    await this.prisma.riwayatServis.create({ data: { id_servis: serviceId, status: body.status } });
+    await this.prisma.riwayatServis.create({
+      data: { id_servis: serviceId, status: body.status },
+    });
 
     if (body.note?.trim()) {
-      await this.prisma.catatanMekanik.create({ data: { id_servis: serviceId, catatan: body.note.trim() } });
+      await this.prisma.catatanMekanik.create({
+        data: { id_servis: serviceId, catatan: body.note.trim() },
+      });
     }
 
     return this.detail(serviceId);
@@ -72,7 +102,9 @@ export class ServicesService {
   async addNote(serviceId: number, body: { catatan: string }) {
     assertValidServiceId(serviceId);
     await this.detail(serviceId);
-    await this.prisma.catatanMekanik.create({ data: { id_servis: serviceId, catatan: body.catatan } });
+    await this.prisma.catatanMekanik.create({
+      data: { id_servis: serviceId, catatan: body.catatan },
+    });
     return { success: true };
   }
 

@@ -44,14 +44,17 @@ export class VehiclesService {
     });
   }
 
-  async update(no_rangka: string, body: {
-    plat_nomor?: string;
-    jenis_mobil?: string | null;
-    warna?: string | null;
-    tahun?: number | null;
-    kilometer?: number;
-    nik_pemilik?: string;
-  }) {
+  async update(
+    no_rangka: string,
+    body: {
+      plat_nomor?: string;
+      jenis_mobil?: string | null;
+      warna?: string | null;
+      tahun?: number | null;
+      kilometer?: number;
+      nik_pemilik?: string;
+    },
+  ) {
     return this.prisma.kendaraan.update({
       where: { no_rangka },
       data: {

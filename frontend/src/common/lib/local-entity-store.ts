@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { frontendMode } from '@/config/frontend-mode';
 
 const isBrowser = typeof window !== 'undefined';
 
@@ -14,6 +15,7 @@ const storageKeys: Record<Key, string> = {
 };
 
 function readRaw(key: Key): unknown[] {
+  if (!frontendMode.enableMockFallback) return [];
   if (!isBrowser) return [];
   try {
     const raw = window.localStorage.getItem(storageKeys[key]);
@@ -26,6 +28,7 @@ function readRaw(key: Key): unknown[] {
 }
 
 function writeRaw(key: Key, value: unknown[]) {
+  if (!frontendMode.enableMockFallback) return;
   if (!isBrowser) return;
   window.localStorage.setItem(storageKeys[key], JSON.stringify(value));
 }
@@ -53,6 +56,7 @@ export function removeLocalEntity<T>(key: Key, getId: (item: T) => string | numb
 }
 
 export function mergeEntities<T>(base: T[], local: T[], getId: (item: T) => string | number): T[] {
+  if (!frontendMode.enableMockFallback) return base;
   const seen = new Set<string>();
   const merged = [...local, ...base];
   return merged.filter((item) => {
@@ -83,5 +87,6 @@ export function useLocalEntities<T>(key: Key): T[] {
 }
 
 export function notifyLocalEntitiesChanged(key: Key) {
+  if (!frontendMode.enableMockFallback) return;
   window.dispatchEvent(new CustomEvent(`local-entities-${key}`));
 }

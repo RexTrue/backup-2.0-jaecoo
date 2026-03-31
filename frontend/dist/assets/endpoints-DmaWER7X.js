@@ -1,0 +1,1 @@
+const s={workOrders:{list:"/work-orders",create:"/work-orders",detail:e=>`/work-orders/${e}`,delete:e=>`/work-orders/${e}`},services:{list:"/services",create:"/services",detail:e=>`/services/${e}`,status:e=>`/services/${e}/status`,notes:e=>`/services/${e}/notes`},users:{list:"/users",create:"/users"},reports:{export:"/reports/export"}};export{s as e};

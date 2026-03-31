@@ -67,7 +67,7 @@ model Kendaraan {
   createdAt   DateTime @default(now())
 
   nik_pemilik String
-  pemilik     Pemilik @relation(fields: [nik_pemilik], references: [nik])
+  pemilik     Pemilik @relation(fields: [nik_pemilik], references: [nik], onDelete: Cascade)
 
   work_orders WorkOrder[]
 }
@@ -81,10 +81,10 @@ model WorkOrder {
   updatedAt       DateTime        @updatedAt
 
   no_rangka       String
-  kendaraan       Kendaraan @relation(fields: [no_rangka], references: [no_rangka])
+  kendaraan       Kendaraan @relation(fields: [no_rangka], references: [no_rangka], onDelete: Cascade)
 
   created_by_user_id Int?
-  createdBy        User?     @relation("WorkOrderCreatedBy", fields: [created_by_user_id], references: [id_user])
+  createdBy        User?     @relation("WorkOrderCreatedBy", fields: [created_by_user_id], references: [id_user], onDelete: SetNull)
 
   servis Servis[]
 }
@@ -100,7 +100,7 @@ model Servis {
   updatedAt       DateTime      @updatedAt
 
   id_wo     Int
-  workOrder WorkOrder @relation(fields: [id_wo], references: [id_wo])
+  workOrder WorkOrder @relation(fields: [id_wo], references: [id_wo], onDelete: Cascade)
 
   detail_servis DetailServis[]
   catatan       CatatanMekanik[]
@@ -119,10 +119,10 @@ model DetailServis {
   id_detail Int @id @default(autoincrement())
 
   id_servis Int
-  servis    Servis @relation(fields: [id_servis], references: [id_servis])
+  servis    Servis @relation(fields: [id_servis], references: [id_servis], onDelete: Cascade)
 
   id_jenis_servis Int
-  jenis_servis    JenisServis @relation(fields: [id_jenis_servis], references: [id_jenis_servis])
+  jenis_servis    JenisServis @relation(fields: [id_jenis_servis], references: [id_jenis_servis], onDelete: Restrict)
 
   keterangan String?
 }
@@ -131,7 +131,7 @@ model CatatanMekanik {
   id_catatan Int @id @default(autoincrement())
 
   id_servis Int
-  servis    Servis @relation(fields: [id_servis], references: [id_servis])
+  servis    Servis @relation(fields: [id_servis], references: [id_servis], onDelete: Cascade)
 
   catatan String
   waktu   DateTime @default(now())
@@ -141,7 +141,7 @@ model RiwayatServis {
   id_riwayat Int @id @default(autoincrement())
 
   id_servis Int
-  servis    Servis @relation(fields: [id_servis], references: [id_servis])
+  servis    Servis @relation(fields: [id_servis], references: [id_servis], onDelete: Cascade)
 
   status StatusServis
   waktu  DateTime @default(now())

@@ -1,1 +1,0 @@
-const e={workOrders:{list:"/work-orders",create:"/work-orders"},services:{list:"/services",create:"/services",detail:s=>`/services/${s}`,status:s=>`/services/${s}/status`,notes:s=>`/services/${s}/notes`},users:{list:"/users",create:"/users"},reports:{export:"/reports/export"}};export{e};

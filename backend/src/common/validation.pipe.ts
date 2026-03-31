@@ -10,7 +10,11 @@ import { validate } from 'class-validator';
 @Injectable()
 export class GlobalValidationPipe implements PipeTransform {
   async transform(value: any, metadata: ArgumentMetadata) {
-    if (!metadata.type || metadata.type === 'custom' || typeof metadata.type === 'string') {
+    if (
+      !metadata.type ||
+      metadata.type === 'custom' ||
+      typeof metadata.type === 'string'
+    ) {
       return value;
     }
 

@@ -16,6 +16,8 @@ export const endpoints = {
   workOrders: {
     list: '/work-orders',
     create: '/work-orders',
+    detail: (id: string | number) => `/work-orders/${id}`,
+    delete: (id: string | number) => `/work-orders/${id}`,
   },
   services: {
     list: '/services',

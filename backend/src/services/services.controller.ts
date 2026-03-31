@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ServicesService } from './services.service';
 import { StatusServis } from '@prisma/client';
 
@@ -17,12 +25,24 @@ export class ServicesController {
   }
 
   @Post()
-  create(@Body() body: { id_wo: number; keluhan: string; estimasiSelesai?: string | null; status?: StatusServis; prioritas?: 'NORMAL' | 'HIGH' | 'URGENT' }) {
+  create(
+    @Body()
+    body: {
+      id_wo: number;
+      keluhan: string;
+      estimasiSelesai?: string | null;
+      status?: StatusServis;
+      prioritas?: 'NORMAL' | 'HIGH' | 'URGENT';
+    },
+  ) {
     return this.servicesService.create(body);
   }
 
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() body: { status: StatusServis; note?: string }) {
+  updateStatus(
+    @Param('id') id: string,
+    @Body() body: { status: StatusServis; note?: string },
+  ) {
     return this.servicesService.updateStatus(Number(id), body);
   }
 

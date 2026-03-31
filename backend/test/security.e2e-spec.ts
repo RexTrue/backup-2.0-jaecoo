@@ -21,17 +21,24 @@ describe('Security Testing Suite', () => {
   });
 
   describe('Basic Application Health', () => {
-    it('should return Hello World on GET /api', () => {
+    it('should return backend banner on GET /api', () => {
       return request(app.getHttpServer())
         .get('/api')
         .expect(200)
-        .expect('Hello World!');
+        .expect('JAECOO Service Backend');
+    });
+
+    it('should return healthy payload on GET /api/health', () => {
+      return request(app.getHttpServer())
+        .get('/api/health')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.status).toBe('ok');
+        });
     });
 
     it('should be accessible via health check', () => {
-      return request(app.getHttpServer())
-        .get('/api')
-        .expect(200);
+      return request(app.getHttpServer()).get('/api').expect(200);
     });
   });
 
@@ -51,9 +58,7 @@ describe('Security Testing Suite', () => {
 
   describe('CORS Headers', () => {
     it('should process GET requests', () => {
-      return request(app.getHttpServer())
-        .get('/api')
-        .expect(200);
+      return request(app.getHttpServer()).get('/api').expect(200);
     });
 
     it('should handle preflight requests gracefully', () => {
@@ -127,9 +132,7 @@ describe('Security Testing Suite', () => {
   describe('Application Stability', () => {
     it('should handle multiple sequential requests', async () => {
       for (let i = 0; i < 5; i++) {
-        await request(app.getHttpServer())
-          .get('/api')
-          .expect(200);
+        await request(app.getHttpServer()).get('/api').expect(200);
       }
     });
 

@@ -1,13 +1,33 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Role } from '@prisma/client';
+import jwt from 'jsonwebtoken';
 
 export type AuthUser = {
   id_user: number;
   email: string;
-  role: string;
+  role: Role;
 };
 
+type JwtPayload = AuthUser & {
+  iat?: number;
+  exp?: number;
+};
+
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET is required.');
+  }
+  return secret;
+}
+
 export function signToken(user: AuthUser): string {
-  return Buffer.from(JSON.stringify(user)).toString('base64url');
+  const expiresIn = process.env.JWT_EXPIRES_IN ?? '8h';
+  return jwt.sign(user, getJwtSecret(), {
+    expiresIn,
+    issuer: 'jaecoo-backend',
+    audience: 'jaecoo-frontend',
+  });
 }
 
 export function parseToken(header?: string): AuthUser {
@@ -17,13 +37,22 @@ export function parseToken(header?: string): AuthUser {
 
   try {
     const raw = header.slice(7);
-    const parsed = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8')) as AuthUser;
-    if (!parsed?.id_user || !parsed?.email || !parsed?.role) {
+    const payload = jwt.verify(raw, getJwtSecret(), {
+      issuer: 'jaecoo-backend',
+      audience: 'jaecoo-frontend',
+    }) as JwtPayload;
+
+    if (!payload?.id_user || !payload?.email || !payload?.role) {
       throw new Error('invalid payload');
     }
-    return parsed;
+
+    return {
+      id_user: payload.id_user,
+      email: payload.email,
+      role: payload.role,
+    };
   } catch {
-    throw new UnauthorizedException('Token tidak valid.');
+    throw new UnauthorizedException('Token tidak valid atau kedaluwarsa.');
   }
 }
 

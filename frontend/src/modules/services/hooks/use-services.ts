@@ -8,6 +8,9 @@ import {
   getServices,
   updateServiceStatus,
 } from '@/modules/services/services/service-api';
+import { removeLocalEntity } from '@/common/lib/local-entity-store';
+
+const MAX_INT_32 = 2147483647;
 
 export function useServices() {
   return useQuery({
@@ -63,9 +66,20 @@ export function useDeleteService() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: deleteService,
-    onSuccess: () => {
+    mutationFn: async (serviceId: string) => {
+      const parsed = Number(serviceId);
+      const isServerCompatibleId = Number.isInteger(parsed) && parsed > 0 && parsed <= MAX_INT_32;
+
+      if (!isServerCompatibleId) {
+        return { success: true, message: 'Servis lokal berhasil dihapus' };
+      }
+
+      return deleteService(serviceId);
+    },
+    onSuccess: (_, serviceId) => {
+      removeLocalEntity('services', (service) => (service as { id_servis: number }).id_servis, Number(serviceId));
       void queryClient.invalidateQueries({ queryKey: queryKeys.services });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.serviceDetail(serviceId) });
     },
   });
 }

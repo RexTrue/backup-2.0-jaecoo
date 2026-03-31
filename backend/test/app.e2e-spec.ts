@@ -7,7 +7,7 @@ import { AppModule } from '../src/app.module';
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -17,18 +17,27 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     if (app) {
       await app.close();
     }
   });
 
-  it('GET /api should return Hello World', () => {
+  it('GET /api should return backend banner', () => {
     return request(app.getHttpServer())
       .get('/api')
       .expect(200)
       .expect((res) => {
-        expect(res.text).toBe('Hello World!');
+        expect(res.text).toBe('JAECOO Service Backend');
+      });
+  });
+
+  it('GET /api/health should return healthy payload', () => {
+    return request(app.getHttpServer())
+      .get('/api/health')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.status).toBe('ok');
       });
   });
 });

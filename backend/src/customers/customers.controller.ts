@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { CustomersService } from './customers.service';
 
 @Controller('customers')
@@ -16,14 +24,23 @@ export class CustomersController {
   }
 
   @Post()
-  create(@Body() body: { nik: string; nama: string; no_hp?: string | null; alamat?: string | null }) {
+  create(
+    @Body()
+    body: {
+      nik: string;
+      nama: string;
+      no_hp?: string | null;
+      alamat?: string | null;
+    },
+  ) {
     return this.customersService.create(body);
   }
 
   @Patch(':nik')
   update(
     @Param('nik') nik: string,
-    @Body() body: { nama?: string; no_hp?: string | null; alamat?: string | null },
+    @Body()
+    body: { nama?: string; no_hp?: string | null; alamat?: string | null },
   ) {
     return this.customersService.update(nik, body);
   }

@@ -6,6 +6,7 @@ export type Permission =
   | 'vehicles:view'
   | 'work-orders:view'
   | 'work-orders:create'
+  | 'work-orders:delete'
   | 'services:view'
   | 'services:update'
   | 'services:assign'
@@ -22,6 +23,7 @@ const ALL_ADMIN_PERMISSIONS: Permission[] = [
   'vehicles:view',
   'work-orders:view',
   'work-orders:create',
+  'work-orders:delete',
   'services:view',
   'services:update',
   'services:assign',
@@ -55,6 +57,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     'vehicles:view',
     'work-orders:view',
     'work-orders:create',
+    'work-orders:delete',
     'services:view',
   ],
   MEKANIK: ['dashboard:view', 'work-orders:view', 'services:view', 'services:update', 'mechanic:view-own'],

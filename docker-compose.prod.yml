@@ -7,11 +7,12 @@ services:
     environment:
       POSTGRES_DB: jaecoo_prod
       POSTGRES_USER: jaecoo_user
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password123}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # Keep Postgres internal-only in production.
+    # ports:
+    #   - "5432:5432"
     networks:
       - jaecoo-network
     healthcheck:
@@ -26,11 +27,16 @@ services:
       dockerfile: Dockerfile
     container_name: jaecoo-backend
     environment:
-      DATABASE_URL: postgresql://jaecoo_user:${DB_PASSWORD:-password123}@postgres:5432/jaecoo_prod
+      DATABASE_URL: postgresql://jaecoo_user:${DB_PASSWORD}@postgres:5432/jaecoo_prod
       NODE_ENV: production
       PORT: 3000
-      JWT_SECRET: ${JWT_SECRET:-jaecoo-secret-key-2025}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      FRONTEND_URL: ${FRONTEND_URL}
+      BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-12}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-60000}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-120}
+      AUTH_RATE_LIMIT_MAX: ${AUTH_RATE_LIMIT_MAX:-20}
     ports:
       - "3000:3000"
     depends_on:
@@ -40,8 +46,9 @@ services:
       - jaecoo-network
     volumes:
       - ./backend/logs:/app/logs
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -57,6 +64,7 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+    restart: unless-stopped
     networks:
       - jaecoo-network
 
