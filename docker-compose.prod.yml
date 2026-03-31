@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: jaecoo-postgres
+    environment:
+      POSTGRES_DB: jaecoo_prod
+      POSTGRES_USER: jaecoo_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - jaecoo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jaecoo_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: jaecoo-backend
+    environment:
+      DATABASE_URL: postgresql://jaecoo_user:${DB_PASSWORD:-password123}@postgres:5432/jaecoo_prod
+      NODE_ENV: production
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-jaecoo-secret-key-2025}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - jaecoo-network
+    volumes:
+      - ./backend/logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: jaecoo-frontend
+    environment:
+      VITE_API_URL: http://backend:3000/api
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - jaecoo-network
+
+volumes:
+  postgres_data:
+
+networks:
+  jaecoo-network:
+    driver: bridge
