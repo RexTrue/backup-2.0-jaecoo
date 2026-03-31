@@ -30,3 +30,8 @@ export async function createMechanicNote(serviceId: string, payload: CreateMecha
   const { data } = await apiClient.post<Record<string, unknown>>(endpoints.services.notes(serviceId), payload);
   return data;
 }
+
+export async function deleteService(serviceId: string) {
+  const { data } = await apiClient.delete<Record<string, unknown>>(endpoints.services.detail(serviceId));
+  return data;
+}

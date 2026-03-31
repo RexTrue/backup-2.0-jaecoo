@@ -4,7 +4,7 @@ import { DashboardHeroSection } from '@/modules/dashboard/components/dashboard-h
 import { DashboardStatusOverview } from '@/modules/dashboard/components/dashboard-status-overview';
 import { DashboardWorkOrderSection } from '@/modules/dashboard/components/dashboard-work-order-section';
 import { getDashboardConfigByRole } from '@/modules/dashboard/mocks/dashboard.mock';
-import { getLocalEntities, mergeEntities } from '@/common/lib/local-entity-store';
+import { getLocalEntities, mergeEntities, useLocalEntities } from '@/common/lib/local-entity-store';
 import { hasAnyUnseen } from '@/common/lib/unseen-notifications';
 import { useUnseenRefresh } from '@/common/hooks/use-unseen-refresh';
 import type { DashboardConfig } from '@/modules/dashboard/types/dashboard.types';
@@ -44,9 +44,9 @@ export function DashboardPage() {
   const usersQuery = useUsers();
   useUnseenRefresh();
 
-  const localWorkOrders = useMemo(() => getLocalEntities<WorkOrder>('work-orders'), []);
-  const localServices = useMemo(() => getLocalEntities<Service>('services'), []);
-  const localUsers = useMemo(() => getLocalEntities<User>('users'), []);
+  const localWorkOrders = useLocalEntities<WorkOrder>('work-orders');
+  const localServices = useLocalEntities<Service>('services');
+  const localUsers = useLocalEntities<User>('users');
 
   const serviceItems = useMemo(() => mergeEntities(servicesQuery.data ?? [], localServices, (item) => item.id_servis), [localServices, servicesQuery.data]);
   const workOrderItems = useMemo(() => mergeEntities(workOrdersQuery.data ?? [], localWorkOrders, (item) => item.id_wo), [localWorkOrders, workOrdersQuery.data]);

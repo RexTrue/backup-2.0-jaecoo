@@ -8,7 +8,7 @@ import { ListCard } from '@/common/components/data-display/list-card';
 import { PageHeader } from '@/common/components/page/page-header';
 import { Input } from '@/common/components/ui/input';
 import { Select } from '@/common/components/ui/select';
-import { getLocalEntities, mergeEntities } from '@/common/lib/local-entity-store';
+import { getLocalEntities, mergeEntities, useLocalEntities } from '@/common/lib/local-entity-store';
 import { hasPermission } from '@/common/lib/authz';
 import { useAuthStore } from '@/modules/auth/store/auth-store';
 import { useWorkOrders } from '@/modules/work-orders/hooks/use-work-orders';
@@ -29,10 +29,10 @@ export function WorkOrderListPage() {
   const sortBy = searchParams.get('sort') === 'oldest' ? 'oldest' : 'newest';
   const page = Math.max(1, Number(searchParams.get('page') ?? '1'));
 
-  const localOrders = useMemo(() => getLocalEntities<WorkOrder>('work-orders'), []);
-  const localServices = useMemo(() => getLocalEntities<Service>('services'), []);
-  const localVehicles = useMemo(() => getLocalEntities<Vehicle>('vehicles'), []);
-  const localCustomers = useMemo(() => getLocalEntities<Customer>('customers'), []);
+  const localOrders = useLocalEntities<WorkOrder>('work-orders');
+  const localServices = useLocalEntities<Service>('services');
+  const localVehicles = useLocalEntities<Vehicle>('vehicles');
+  const localCustomers = useLocalEntities<Customer>('customers');
 
   const mergedOrders = useMemo(() => mergeEntities(workOrdersQuery.data ?? [], localOrders, (item) => item.id_wo), [workOrdersQuery.data, localOrders]);
 

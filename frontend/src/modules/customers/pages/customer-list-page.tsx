@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/common/components/ui/card';
 import { EmptyState } from '@/common/components/feedback/empty-state';
-import { ErrorState } from '@/common/components/feedback/error-state';
 import { LoadingState } from '@/common/components/feedback/loading-state';
 import { useToast } from '@/common/components/feedback/toast-provider';
 import { useConfirm } from '@/common/components/feedback/confirm-dialog-provider';
@@ -10,29 +9,26 @@ import { Button } from '@/common/components/ui/button';
 import { ListCard } from '@/common/components/data-display/list-card';
 import { PageHeader } from '@/common/components/page/page-header';
 import { PermissionGate } from '@/common/components/auth/permission-gate';
-import { shouldUseMockFallback } from '@/common/lib/query-fallback';
-import { customerRowsMock } from '@/modules/customers/mocks/customer.mock';
-import { useCustomers } from '@/modules/customers/hooks/use-customers';
+import { useCustomers, useDeleteCustomer } from '@/modules/customers/hooks/use-customers';
 import { mapCustomerToListRow } from '@/modules/customers/mappers/customer-mappers';
 import type { CustomerListRow } from '@/modules/customers/types/customer.types';
 import type { Customer } from '@/common/types/domain';
-import { getLocalEntities } from '@/common/lib/local-entity-store';
+import { getLocalEntities, useLocalEntities } from '@/common/lib/local-entity-store';
 
 export function CustomerListPage() {
   const customersQuery = useCustomers();
+  const deleteCustomerMutation = useDeleteCustomer();
   const customers = customersQuery.data;
   const { showToast } = useToast();
   const { confirm } = useConfirm();
 
   const rows = useMemo(() => (customers?.length ? customers.map(mapCustomerToListRow) : []), [customers]);
-  const localRows = useMemo(() => getLocalEntities<Customer>('customers').map(mapCustomerToListRow), []);
-  const useMockData = shouldUseMockFallback(customersQuery.isError);
+  const localRows = useLocalEntities<Customer>('customers').map(mapCustomerToListRow);
 
   const displayRows: CustomerListRow[] = useMemo(() => {
-    const base = useMockData ? customerRowsMock : rows;
-    const deduped = [...localRows, ...base];
+    const deduped = [...localRows, ...rows];
     return deduped.filter((item, index) => deduped.findIndex((candidate) => candidate.nik === item.nik) === index);
-  }, [localRows, rows, useMockData]);
+  }, [localRows, rows]);
 
   return (
     <div className="space-y-5">
@@ -52,7 +48,6 @@ export function CustomerListPage() {
           <EmptyState message="Belum ada data pelanggan. Tambahkan pelanggan pertama untuk mulai alur operasional." />
         ) : (
           <div className="space-y-4">
-            {useMockData ? <ErrorState message="Data pelanggan backend belum tersedia." description="Data lokal dan data contoh tetap ditampilkan agar alur list-first CRUD bisa diuji." /> : null}
             <div className="grid gap-3">
               {displayRows.map((row) => (
                 <ListCard
@@ -70,11 +65,19 @@ export function CustomerListPage() {
                             variant="danger"
                             type="button"
                             onClick={async () => {
-                              const approved = await confirm({ title: `Hapus pelanggan ${row.name}?`, description: 'Aksi hapus pelanggan akan dihubungkan ke backend pada tahap berikutnya.', confirmLabel: 'Hapus', tone: 'danger' });
-                              if (approved) showToast({ title: 'Aksi disiapkan', description: 'Endpoint hapus pelanggan belum diaktifkan.', tone: 'info' });
+                              const approved = await confirm({ title: `Hapus pelanggan ${row.name}?`, description: 'Data pelanggan akan dihapus secara permanen.', confirmLabel: 'Hapus', tone: 'danger' });
+                              if (approved) {
+                                try {
+                                  await deleteCustomerMutation.mutateAsync(row.nik);
+                                  showToast({ title: 'Pelanggan berhasil dihapus', description: 'Data pelanggan telah dihapus dari sistem.', tone: 'success' });
+                                } catch (error) {
+                                  showToast({ title: 'Gagal menghapus pelanggan', description: 'Terjadi kesalahan saat menghapus data pelanggan.', tone: 'error' });
+                                }
+                              }
                             }}
+                            disabled={deleteCustomerMutation.isPending}
                           >
-                            Hapus
+                            {deleteCustomerMutation.isPending ? 'Menghapus...' : 'Hapus'}
                           </Button>
                         </div>
                       </PermissionGate>

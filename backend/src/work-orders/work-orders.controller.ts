@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post } from '@nestjs/common';
 import { WorkOrdersService } from './work-orders.service';
 import { PriorityLevel, StatusServis, WorkOrderStatus } from '@prisma/client';
 
@@ -9,6 +9,11 @@ export class WorkOrdersController {
   @Get()
   list() {
     return this.workOrdersService.list();
+  }
+
+  @Get(':id')
+  detail(@Param('id') id: string) {
+    return this.workOrdersService.detail(Number(id));
   }
 
   @Post()
@@ -27,5 +32,22 @@ export class WorkOrdersController {
     @Headers('authorization') authorization?: string,
   ) {
     return this.workOrdersService.create(body, authorization);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      status?: WorkOrderStatus;
+      nomor_wo_pusat?: string;
+    },
+  ) {
+    return this.workOrdersService.update(Number(id), body);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.workOrdersService.delete(Number(id));
   }
 }

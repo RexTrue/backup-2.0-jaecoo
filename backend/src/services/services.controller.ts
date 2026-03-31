@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { ServicesService } from './services.service';
 import { StatusServis } from '@prisma/client';
 
@@ -29,5 +29,10 @@ export class ServicesController {
   @Post(':id/notes')
   addNote(@Param('id') id: string, @Body() body: { catatan: string }) {
     return this.servicesService.addNote(Number(id), body);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.servicesService.delete(Number(id));
   }
 }

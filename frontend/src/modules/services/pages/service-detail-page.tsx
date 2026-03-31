@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card } from '@/common/components/ui/card';
@@ -20,8 +20,8 @@ import { FormDirtyBanner } from '@/common/components/forms/form-dirty-banner';
 import { PermissionGate } from '@/common/components/auth/permission-gate';
 import { useUnsavedChanges } from '@/common/hooks/use-unsaved-changes';
 import { ServiceTimeline } from '@/modules/services/components/service-timeline';
-import { useCreateMechanicNote, useServiceDetail, useUpdateServiceStatus } from '@/modules/services/hooks/use-services';
-import { getLocalEntities } from '@/common/lib/local-entity-store';
+import { useCreateMechanicNote, useDeleteService, useServiceDetail, useUpdateServiceStatus } from '@/modules/services/hooks/use-services';
+import { getLocalEntities, useLocalEntities, writeLocalEntities } from '@/common/lib/local-entity-store';
 import { formatWorkOrderCode } from '@/common/lib/work-order-code';
 import { markItemsSeen, markServiceUpdated } from '@/common/lib/unseen-notifications';
 import { useAuthStore } from '@/modules/auth/store/auth-store';
@@ -43,17 +43,24 @@ const managerAllowedStatuses = ['ANTRIAN', 'DIKERJAKAN', 'TEST_DRIVE', 'SELESAI'
 
 export function ServiceDetailPage() {
   const { serviceId = '10' } = useParams();
+  const navigate = useNavigate();
   const role = useAuthStore((state) => state.user?.role);
   const { showToast } = useToast();
   const { confirm } = useConfirm();
-  const serviceDetailQuery = useServiceDetail(serviceId);
+  const isLocalServiceId = useMemo(() => {
+    const numeric = Number(serviceId);
+    return Number.isNaN(numeric) || numeric > 2_147_483_647;
+  }, [serviceId]);
+
+  const serviceDetailQuery = useServiceDetail(serviceId, { enabled: !isLocalServiceId });
   const updateStatusMutation = useUpdateServiceStatus(serviceId);
   const createNoteMutation = useCreateMechanicNote(serviceId);
+  const deleteServiceMutation = useDeleteService();
 
-  const localServices = useMemo(() => getLocalEntities<Service>('services'), []);
-  const localWorkOrders = useMemo(() => getLocalEntities<WorkOrder>('work-orders'), []);
-  const localVehicles = useMemo(() => getLocalEntities<Vehicle>('vehicles'), []);
-  const localCustomers = useMemo(() => getLocalEntities<Customer>('customers'), []);
+  const localServices = useLocalEntities<Service>('services');
+  const localWorkOrders = useLocalEntities<WorkOrder>('work-orders');
+  const localVehicles = useLocalEntities<Vehicle>('vehicles');
+  const localCustomers = useLocalEntities<Customer>('customers');
 
   const service = serviceDetailQuery.data ?? localServices.find((item) => String(item.id_servis) === serviceId);
   const linkedWorkOrder = useMemo(() => localWorkOrders.find((item) => item.id_wo === service?.id_wo), [localWorkOrders, service?.id_wo]);
@@ -76,7 +83,7 @@ export function ServiceDetailPage() {
     if (role && service?.id_wo) markItemsSeen(role, [service.id_wo]);
   }, [role, service?.id_wo]);
 
-  if (serviceDetailQuery.isLoading && !service) {
+  if (serviceDetailQuery.isLoading && !service && !isLocalServiceId) {
     return <LoadingState message="Memuat detail servis..." rows={3} />;
   }
 
@@ -100,11 +107,28 @@ export function ServiceDetailPage() {
                     variant="secondary"
                     type="button"
                     onClick={async () => {
-                      const approved = await confirm({ title: 'Hapus data servis?', description: 'Aksi hapus belum dihubungkan ke backend.', confirmLabel: 'Catat aksi', tone: 'danger' });
-                      if (approved) showToast({ title: 'Aksi hapus dicatat', description: 'Endpoint delete servis belum diaktifkan.', tone: 'info' });
+                      const approved = await confirm({ title: 'Hapus data servis?', description: 'Data servis akan dihapus secara permanen.', confirmLabel: 'Hapus', tone: 'danger' });
+                      if (approved) {
+                        if (isLocalServiceId) {
+                          // Hapus dari local storage saja
+                          writeLocalEntities<Service>('services', localServices.filter((item) => String(item.id_servis) !== serviceId));
+                          showToast({ title: 'Servis lokal dihapus', description: 'Data servis dummy telah dihapus dari perangkat ini.', tone: 'success' });
+                          navigate('/services');
+                        } else {
+                          try {
+                            await deleteServiceMutation.mutateAsync(serviceId);
+                            showToast({ title: 'Servis berhasil dihapus', description: 'Data servis telah dihapus dari sistem.', tone: 'success' });
+                            // Navigate back to services list
+                            navigate('/services');
+                          } catch (error) {
+                            showToast({ title: 'Gagal menghapus servis', description: 'Terjadi kesalahan saat menghapus data servis.', tone: 'error' });
+                          }
+                        }
+                      }
                     }}
+                    disabled={deleteServiceMutation.isPending}
                   >
-                    Hapus
+                    {deleteServiceMutation.isPending ? 'Menghapus...' : 'Hapus'}
                   </Button>
                 </PermissionGate>
               </>

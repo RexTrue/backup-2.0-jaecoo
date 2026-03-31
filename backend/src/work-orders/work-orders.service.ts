@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PriorityLevel, StatusServis, WorkOrderStatus } from '@prisma/client';
 import { parseOptionalDate, parseToken } from '../common/auth';
 import { PrismaService } from '../prisma/prisma.service';
@@ -9,6 +9,45 @@ export class WorkOrdersService {
 
   list() {
     return this.prisma.workOrder.findMany({ orderBy: { waktuMasuk: 'desc' } });
+  }
+
+  async detail(id: number) {
+    const workOrder = await this.prisma.workOrder.findUnique({
+      where: { id_wo: id },
+      include: {
+        servis: {
+          include: {
+            detail_servis: true,
+            riwayat: true,
+          },
+        },
+        createdBy: true,
+      },
+    });
+
+    if (!workOrder) {
+      throw new NotFoundException('Work order tidak ditemukan');
+    }
+
+    return workOrder;
+  }
+
+  async update(id: number, body: { status?: WorkOrderStatus; nomor_wo_pusat?: string }) {
+    const workOrder = await this.prisma.workOrder.findUnique({
+      where: { id_wo: id },
+    });
+
+    if (!workOrder) {
+      throw new NotFoundException('Work order tidak ditemukan');
+    }
+
+    return this.prisma.workOrder.update({
+      where: { id_wo: id },
+      data: {
+        status: body.status ?? workOrder.status,
+        nomor_wo_pusat: body.nomor_wo_pusat ?? workOrder.nomor_wo_pusat,
+      },
+    });
   }
 
   async create(
@@ -128,6 +167,56 @@ export class WorkOrdersService {
       }
 
       return workOrder;
+    });
+  }
+
+  async delete(id: number) {
+    const workOrder = await this.prisma.workOrder.findUnique({
+      where: { id_wo: id },
+      include: {
+        servis: {
+          include: {
+            detail_servis: true,
+            riwayat: true,
+          },
+        },
+      },
+    });
+
+    if (!workOrder) {
+      throw new NotFoundException('Work order tidak ditemukan');
+    }
+
+    // Check if work order can be deleted (only OPEN or CANCELLED status)
+    if (workOrder.status !== 'OPEN' && workOrder.status !== 'CANCELLED') {
+      throw new BadRequestException('Work order tidak dapat dihapus karena sudah dalam proses atau selesai');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Delete related records in cascade
+      for (const service of workOrder.servis) {
+        // Delete detail servis
+        await tx.detailServis.deleteMany({
+          where: { id_servis: service.id_servis },
+        });
+
+        // Delete riwayat servis
+        await tx.riwayatServis.deleteMany({
+          where: { id_servis: service.id_servis },
+        });
+
+        // Delete servis
+        await tx.servis.delete({
+          where: { id_servis: service.id_servis },
+        });
+      }
+
+      // Delete work order
+      await tx.workOrder.delete({
+        where: { id_wo: id },
+      });
+
+      return { success: true, message: 'Work order berhasil dihapus' };
     });
   }
 }

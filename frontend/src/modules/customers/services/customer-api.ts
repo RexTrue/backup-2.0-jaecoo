@@ -15,3 +15,8 @@ export async function createCustomer(payload: CreateCustomerPayload): Promise<Cu
   const { data } = await apiClient.post<BackendCustomer | { data?: BackendCustomer }>(endpoints.customers.create, payload);
   return mapCustomerFromBackend(unwrapApiSingle(data) as Record<string, unknown>);
 }
+
+export async function deleteCustomer(nik: string) {
+  const { data } = await apiClient.delete<Record<string, unknown>>(endpoints.customers.detail(nik));
+  return data;
+}

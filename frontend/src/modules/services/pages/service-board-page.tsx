@@ -4,7 +4,7 @@ import { EmptyState } from '@/common/components/feedback/empty-state';
 import { LoadingState } from '@/common/components/feedback/loading-state';
 import { Input } from '@/common/components/ui/input';
 import { PageHeader } from '@/common/components/page/page-header';
-import { getLocalEntities, mergeEntities } from '@/common/lib/local-entity-store';
+import { getLocalEntities, mergeEntities, useLocalEntities } from '@/common/lib/local-entity-store';
 import { ServiceBoard } from '@/modules/services/components/service-board';
 import { useServices } from '@/modules/services/hooks/use-services';
 import { useWorkOrders } from '@/modules/work-orders/hooks/use-work-orders';
@@ -18,10 +18,10 @@ export function ServiceBoardPage() {
 
   const search = searchParams.get('search') ?? '';
 
-  const localServices = useMemo(() => getLocalEntities<Service>('services'), []);
-  const localWorkOrders = useMemo(() => getLocalEntities<WorkOrder>('work-orders'), []);
-  const localVehicles = useMemo(() => getLocalEntities<Vehicle>('vehicles'), []);
-  const localCustomers = useMemo(() => getLocalEntities<Customer>('customers'), []);
+  const localServices = useLocalEntities<Service>('services');
+  const localWorkOrders = useLocalEntities<WorkOrder>('work-orders');
+  const localVehicles = useLocalEntities<Vehicle>('vehicles');
+  const localCustomers = useLocalEntities<Customer>('customers');
 
   const services = useMemo(() => mergeEntities(servicesQuery.data ?? [], localServices, (item) => item.id_servis), [localServices, servicesQuery.data]);
   const workOrders = useMemo(() => mergeEntities(workOrdersQuery.data ?? [], localWorkOrders, (item) => item.id_wo), [localWorkOrders, workOrdersQuery.data]);

@@ -6,10 +6,12 @@ export const endpoints = {
   customers: {
     list: '/customers',
     create: '/customers',
+    detail: (nik: string) => `/customers/${nik}`,
   },
   vehicles: {
     list: '/vehicles',
     create: '/vehicles',
+    detail: (noRangka: string) => `/vehicles/${noRangka}`,
   },
   workOrders: {
     list: '/work-orders',

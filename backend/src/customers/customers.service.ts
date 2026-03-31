@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -33,6 +33,22 @@ export class CustomersService {
   }
 
   async delete(nik: string) {
+    const customer = await this.prisma.pemilik.findUnique({
+      where: { nik },
+      include: {
+        kendaraan: true,
+      },
+    });
+
+    if (!customer) {
+      throw new NotFoundException('Pelanggan tidak ditemukan');
+    }
+
+    // Check if customer has vehicles
+    if (customer.kendaraan.length > 0) {
+      throw new BadRequestException('Pelanggan tidak dapat dihapus karena masih memiliki kendaraan terdaftar');
+    }
+
     return this.prisma.pemilik.delete({ where: { nik } });
   }
 }

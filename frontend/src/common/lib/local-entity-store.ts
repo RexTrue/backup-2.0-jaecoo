@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
+
 const isBrowser = typeof window !== 'undefined';
 
-type Key = 'users' | 'customers' | 'vehicles' | 'work-orders' | 'services' | 'schedules';
+export type Key = 'users' | 'customers' | 'vehicles' | 'work-orders' | 'services' | 'schedules';
 
 const storageKeys: Record<Key, string> = {
   users: 'jaecoo.local.users',
@@ -35,6 +37,19 @@ export function getLocalEntities<T>(key: Key): T[] {
 export function appendLocalEntity<T>(key: Key, value: T) {
   const current = getLocalEntities<T>(key);
   writeRaw(key, [value, ...current]);
+  notifyLocalEntitiesChanged(key);
+}
+
+export function writeLocalEntities<T>(key: Key, value: T[]) {
+  writeRaw(key, value);
+  notifyLocalEntitiesChanged(key);
+}
+
+export function removeLocalEntity<T>(key: Key, getId: (item: T) => string | number, targetId: string | number) {
+  const current = getLocalEntities<T>(key);
+  const filtered = current.filter((item) => getId(item) !== targetId);
+  writeRaw(key, filtered);
+  notifyLocalEntitiesChanged(key);
 }
 
 export function mergeEntities<T>(base: T[], local: T[], getId: (item: T) => string | number): T[] {
@@ -46,4 +61,27 @@ export function mergeEntities<T>(base: T[], local: T[], getId: (item: T) => stri
     seen.add(id);
     return true;
   });
+}
+
+export function useLocalEntities<T>(key: Key): T[] {
+  const [entities, setEntities] = useState<T[]>(() => getLocalEntities<T>(key));
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setEntities(getLocalEntities<T>(key));
+    };
+
+    // Listen for custom events when local storage is updated
+    window.addEventListener(`local-entities-${key}`, handleStorageChange);
+
+    return () => {
+      window.removeEventListener(`local-entities-${key}`, handleStorageChange);
+    };
+  }, [key]);
+
+  return entities;
+}
+
+export function notifyLocalEntitiesChanged(key: Key) {
+  window.dispatchEvent(new CustomEvent(`local-entities-${key}`));
 }

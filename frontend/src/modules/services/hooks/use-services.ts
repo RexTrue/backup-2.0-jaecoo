@@ -3,6 +3,7 @@ import { queryKeys } from '@/services/query-keys';
 import {
   createMechanicNote,
   createService,
+  deleteService,
   getServiceDetail,
   getServices,
   updateServiceStatus,
@@ -15,11 +16,11 @@ export function useServices() {
   });
 }
 
-export function useServiceDetail(serviceId: string) {
+export function useServiceDetail(serviceId: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.serviceDetail(serviceId),
     queryFn: () => getServiceDetail(serviceId),
-    enabled: Boolean(serviceId),
+    enabled: options?.enabled ?? Boolean(serviceId),
   });
 }
 
@@ -54,6 +55,17 @@ export function useCreateMechanicNote(serviceId: string) {
     mutationFn: (payload: Parameters<typeof createMechanicNote>[1]) => createMechanicNote(serviceId, payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.serviceDetail(serviceId) });
+    },
+  });
+}
+
+export function useDeleteService() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteService,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.services });
     },
   });
 }
